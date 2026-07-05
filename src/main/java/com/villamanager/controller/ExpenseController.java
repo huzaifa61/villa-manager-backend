@@ -119,35 +119,52 @@ public class ExpenseController {
     }
 
     private void applyExpenseAllocation(Expense expense, boolean add) {
-        BigDecimal amount = null;
+
+        BigDecimal amount = expense.getAmount() != null
+                ? expense.getAmount()
+                : BigDecimal.ZERO;
+
         if (!add) {
             amount = amount.negate();
-        } else {
-            amount = expense.getAmount() != null ? expense.getAmount() : BigDecimal.ZERO;
         }
 
         if (expense.getApartmentId() != null) {
             BigDecimal finalAmount = amount;
+
             apartmentRepository.findById(expense.getApartmentId()).ifPresent(apartment -> {
-                BigDecimal current = apartment.getCurrentBalance() != null ? apartment.getCurrentBalance() : BigDecimal.ZERO;
+                BigDecimal current = apartment.getCurrentBalance() != null
+                        ? apartment.getCurrentBalance()
+                        : BigDecimal.ZERO;
+
                 apartment.setCurrentBalance(current.add(finalAmount));
                 apartment.setUpdatedAt(LocalDateTime.now());
+
                 apartmentRepository.save(apartment);
             });
+
             return;
         }
 
         List<Apartment> apartments = apartmentRepository.findByVillaId(expense.getVillaId());
+
         if (apartments.isEmpty()) {
             return;
         }
 
-        BigDecimal share = amount.divide(BigDecimal.valueOf(apartments.size()), 2, RoundingMode.HALF_UP);
+        BigDecimal share = amount.divide(
+                BigDecimal.valueOf(apartments.size()),
+                2,
+                RoundingMode.HALF_UP);
+
         for (Apartment apartment : apartments) {
-            BigDecimal current = apartment.getCurrentBalance() != null ? apartment.getCurrentBalance() : BigDecimal.ZERO;
+            BigDecimal current = apartment.getCurrentBalance() != null
+                    ? apartment.getCurrentBalance()
+                    : BigDecimal.ZERO;
+
             apartment.setCurrentBalance(current.add(share));
             apartment.setUpdatedAt(LocalDateTime.now());
         }
+
         apartmentRepository.saveAll(apartments);
     }
 }

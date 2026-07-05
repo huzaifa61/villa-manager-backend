@@ -8,4 +8,5 @@ import java.util.List;
 @Repository
 public interface ServiceRequestRepository extends JpaRepository<ServiceRequest, Long> {
     List<ServiceRequest> findByVillaId(Long villaId);
+    void deleteByVillaId(Long villaId);
 }

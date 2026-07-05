@@ -9,4 +9,5 @@ import java.util.List;
 public interface ExpenseRepository extends JpaRepository<Expense, Long> {
     List<Expense> findByVillaId(Long villaId);
     List<Expense> findByApartmentId(Long apartmentId);
+    void deleteByVillaId(Long villaId);
 }

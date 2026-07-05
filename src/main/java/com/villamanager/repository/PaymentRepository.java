@@ -9,4 +9,5 @@ import java.util.List;
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
     List<Payment> findByVillaId(Long villaId);
     List<Payment> findByApartmentId(Long apartmentId);
+    void deleteByVillaId(Long villaId);
 }
