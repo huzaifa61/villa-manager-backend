@@ -32,4 +32,21 @@ public class ApartmentController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success("Apartment created successfully", apartment));
     }
+
+    @PutMapping("/{apartmentId}")
+    public ResponseEntity<ApiResponse<ApartmentDto>> updateApartment(
+            @PathVariable Long villaId,
+            @PathVariable Long apartmentId,
+            @RequestBody ApartmentRequest request) {
+        ApartmentDto apartment = apartmentService.updateApartment(villaId, apartmentId, request);
+        return ResponseEntity.ok(ApiResponse.success("Apartment updated successfully", apartment));
+    }
+
+    @DeleteMapping("/{apartmentId}")
+    public ResponseEntity<ApiResponse<Void>> deleteApartment(
+            @PathVariable Long villaId,
+            @PathVariable Long apartmentId) {
+        apartmentService.deleteApartment(villaId, apartmentId);
+        return ResponseEntity.ok(ApiResponse.success("Apartment deleted successfully", null));
+    }
 }
