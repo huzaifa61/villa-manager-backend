@@ -1,0 +1,54 @@
+package com.villamanager.service;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
+import com.villamanager.dto.AuthResponse;
+import com.villamanager.dto.LoginRequest;
+import com.villamanager.dto.UserDto;
+import com.villamanager.entity.User;
+import com.villamanager.exception.AuthenticationFailedException;
+import com.villamanager.repository.UserRepository;
+import com.villamanager.security.JwtTokenProvider;
+
+@Service
+public class AuthenticationService {
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private JwtTokenProvider jwtTokenProvider;
+
+    public AuthResponse login(LoginRequest request) {
+        User user = userRepository.findByEmail(request.getEmail())
+                .orElseThrow(() -> new AuthenticationFailedException("Invalid email or password"));
+
+        if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
+            throw new AuthenticationFailedException("Invalid email or password");
+        }
+
+        String token = jwtTokenProvider.generateToken(user);
+
+        return AuthResponse.builder()
+                .accessToken(token)
+                .tokenType("Bearer")
+                .expiresIn(86400L)
+                .user(mapToUserDto(user))
+                .build();
+    }
+
+    private UserDto mapToUserDto(User user) {
+        return UserDto.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .fullName(user.getFullName())
+                .phoneNumber(user.getPhoneNumber())
+                .role(user.getRole())
+                .isActive(user.getIsActive())
+                .build();
+    }
+}

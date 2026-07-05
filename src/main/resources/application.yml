@@ -1,0 +1,42 @@
+spring:
+  application:
+    name: villa-manager-backend
+  
+  datasource:
+    url: jdbc:postgresql://localhost:5432/villa_manager
+    username: villa_user
+    password: villa_password
+    driver-class-name: org.postgresql.Driver
+  
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        use_sql_comments: true
+    show-sql: false
+  
+  liquibase:
+    enabled: false
+
+  sql:
+    init:
+      mode: never
+
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+
+app:
+  jwt:
+    secret: VillaManagerProSecretKeyFor256BitHSAlgorithmMustBeLongEnoughForHS512
+    expiration: 86400000
+
+logging:
+  level:
+    root: INFO
+    com.villamanager: DEBUG
+    org.springframework.security: DEBUG
