@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.villamanager.dto.ApiResponse;
+import com.villamanager.dto.AcceptInviteRequest;
 import com.villamanager.dto.AuthResponse;
 import com.villamanager.dto.LoginRequest;
 import com.villamanager.dto.RegisterRequest;
@@ -28,6 +29,12 @@ public class AuthController {
     public ResponseEntity<ApiResponse<AuthResponse>> register(@RequestBody RegisterRequest request) {
         AuthResponse response = authenticationService.register(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("Registration successful", response));
+    }
+
+    @PostMapping("/accept-invite")
+    public ResponseEntity<ApiResponse<AuthResponse>> acceptInvite(@RequestBody AcceptInviteRequest request) {
+        AuthResponse response = authenticationService.acceptInvite(request);
+        return ResponseEntity.ok(ApiResponse.success("Invitation accepted successfully", response));
     }
 
     @GetMapping("/validate")

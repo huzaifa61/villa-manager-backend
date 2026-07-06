@@ -31,6 +31,18 @@ public class User {
     @Column(nullable = false)
     private UserRole role;
 
+    @Column(name = "villa_id")
+    private Long villaId;
+
+    @Column(name = "invite_token", unique = true)
+    private String inviteToken;
+
+    @Column(name = "invite_expires_at")
+    private LocalDateTime inviteExpiresAt;
+
+    @Column(name = "invite_accepted_at")
+    private LocalDateTime inviteAcceptedAt;
+
     @Column(nullable = false)
     private Boolean isActive = true;
 

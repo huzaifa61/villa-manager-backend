@@ -15,6 +15,7 @@ import com.villamanager.entity.PaymentStatus;
 import com.villamanager.exception.ResourceNotFoundException;
 import com.villamanager.repository.PaymentRepository;
 import com.villamanager.repository.ApartmentRepository;
+import com.villamanager.service.AccessControlService;
 import com.villamanager.util.CsvExportUtil;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -34,8 +35,12 @@ public class PaymentController {
     @Autowired
     private ApartmentRepository apartmentRepository;
 
+    @Autowired
+    private AccessControlService accessControlService;
+
     @GetMapping
     public ResponseEntity<ApiResponse<List<PaymentDto>>> getPayments(@PathVariable Long villaId) {
+        accessControlService.requireVillaRead(villaId);
         List<Payment> payments = paymentRepository.findByVillaId(villaId);
         List<PaymentDto> dtos = payments.stream().map(this::mapToDto).collect(Collectors.toList());
         return ResponseEntity.ok(ApiResponse.success("Payments retrieved successfully", dtos));
@@ -43,6 +48,7 @@ public class PaymentController {
 
     @GetMapping(value = "/export", produces = "text/csv")
     public ResponseEntity<String> exportPayments(@PathVariable Long villaId) {
+        accessControlService.requireVillaRead(villaId);
         List<PaymentDto> payments = paymentRepository.findByVillaId(villaId)
                 .stream()
                 .map(this::mapToDto)
@@ -73,6 +79,7 @@ public class PaymentController {
             @PathVariable Long villaId,
             @PathVariable Long apartmentId,
             @RequestBody PaymentRequest request) {
+        accessControlService.requireFinancialManage(villaId);
 
         Payment payment = new Payment();
         payment.setVillaId(villaId);
@@ -111,6 +118,7 @@ public class PaymentController {
             @PathVariable Long villaId,
             @PathVariable Long paymentId,
             @RequestBody PaymentRequest request) {
+        accessControlService.requireFinancialManage(villaId);
 
         Payment payment = paymentRepository.findById(paymentId)
             .filter(p -> p.getVillaId().equals(villaId))
@@ -136,6 +144,7 @@ public class PaymentController {
     public ResponseEntity<ApiResponse<Void>> deletePayment(
             @PathVariable Long villaId,
             @PathVariable Long paymentId) {
+        accessControlService.requireFinancialManage(villaId);
         Payment payment = paymentRepository.findById(paymentId)
             .filter(p -> p.getVillaId().equals(villaId))
             .orElseThrow(() -> new ResourceNotFoundException("Payment not found with id: " + paymentId));

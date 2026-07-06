@@ -8,5 +8,6 @@ import java.util.List;
 @Repository
 public interface ApartmentRepository extends JpaRepository<Apartment, Long> {
     List<Apartment> findByVillaId(Long villaId);
+    void deleteByVillaId(Long villaId);
     Long countByVillaIdAndStatusOrderByCreatedAtDesc(Long villaId, String status);
 }

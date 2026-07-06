@@ -7,8 +7,11 @@ import com.villamanager.exception.ResourceNotFoundException;
 import com.villamanager.repository.ApartmentRepository;
 import com.villamanager.repository.ExpenseRepository;
 import com.villamanager.repository.PaymentRepository;
+import com.villamanager.repository.RecurringExpenseTemplateRepository;
 import com.villamanager.repository.ServiceRequestRepository;
+import com.villamanager.repository.UserRepository;
 import com.villamanager.repository.VillaRepository;
+import com.villamanager.service.AccessControlService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -38,8 +41,18 @@ public class VillaControlController {
     @Autowired
     private ServiceRequestRepository serviceRequestRepository;
 
+    @Autowired
+    private RecurringExpenseTemplateRepository recurringExpenseTemplateRepository;
+
+    @Autowired
+    private UserRepository userRepository;
+
+    @Autowired
+    private AccessControlService accessControlService;
+
     @GetMapping
     public ResponseEntity<ApiResponse<Villa>> getVilla(@PathVariable Long villaId) {
+        accessControlService.requireVillaRead(villaId);
         return ResponseEntity.ok(ApiResponse.success("Villa retrieved successfully", getVillaOrThrow(villaId)));
     }
 
@@ -47,6 +60,7 @@ public class VillaControlController {
     public ResponseEntity<ApiResponse<Villa>> updateVilla(
             @PathVariable Long villaId,
             @RequestBody Map<String, Object> body) {
+        accessControlService.requireVillaManage(villaId);
         Villa villa = getVillaOrThrow(villaId);
         villa.setName(text(body.get("name"), villa.getName()));
         villa.setLocation(text(body.get("location"), villa.getLocation()));
@@ -58,7 +72,9 @@ public class VillaControlController {
     @Transactional
     @PostMapping("/reset-data")
     public ResponseEntity<ApiResponse<Void>> resetVillaData(@PathVariable Long villaId) {
+        accessControlService.requireVillaManage(villaId);
         getVillaOrThrow(villaId);
+        recurringExpenseTemplateRepository.deleteByVillaId(villaId);
         paymentRepository.deleteByVillaId(villaId);
         expenseRepository.deleteByVillaId(villaId);
         serviceRequestRepository.deleteByVillaId(villaId);
@@ -68,6 +84,25 @@ public class VillaControlController {
             apartmentRepository.save(apartment);
         }
         return ResponseEntity.ok(ApiResponse.success("Villa data reset successfully", null));
+    }
+
+    @Transactional
+    @DeleteMapping
+    public ResponseEntity<ApiResponse<Void>> deleteVilla(@PathVariable Long villaId) {
+        accessControlService.requireGeneralManager();
+        Villa villa = getVillaOrThrow(villaId);
+        recurringExpenseTemplateRepository.deleteByVillaId(villaId);
+        paymentRepository.deleteByVillaId(villaId);
+        expenseRepository.deleteByVillaId(villaId);
+        serviceRequestRepository.deleteByVillaId(villaId);
+        apartmentRepository.deleteByVillaId(villaId);
+        userRepository.findByVillaId(villaId).forEach(user -> {
+            user.setVillaId(null);
+            user.setIsActive(false);
+            userRepository.save(user);
+        });
+        villaRepository.delete(villa);
+        return ResponseEntity.ok(ApiResponse.success("Villa deleted successfully", null));
     }
 
     private Villa getVillaOrThrow(Long villaId) {

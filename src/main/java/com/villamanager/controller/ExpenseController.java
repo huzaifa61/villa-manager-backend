@@ -14,6 +14,7 @@ import com.villamanager.entity.Apartment;
 import com.villamanager.exception.ResourceNotFoundException;
 import com.villamanager.repository.ExpenseRepository;
 import com.villamanager.repository.ApartmentRepository;
+import com.villamanager.service.AccessControlService;
 import com.villamanager.util.CsvExportUtil;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -34,8 +35,12 @@ public class ExpenseController {
     @Autowired
     private ApartmentRepository apartmentRepository;
 
+    @Autowired
+    private AccessControlService accessControlService;
+
     @GetMapping
     public ResponseEntity<ApiResponse<List<ExpenseDto>>> getExpenses(@PathVariable Long villaId) {
+        accessControlService.requireVillaRead(villaId);
         List<Expense> expenses = expenseRepository.findByVillaId(villaId);
         List<ExpenseDto> dtos = expenses.stream().map(this::mapToDto).collect(Collectors.toList());
         return ResponseEntity.ok(ApiResponse.success("Expenses retrieved successfully", dtos));
@@ -43,6 +48,7 @@ public class ExpenseController {
 
     @GetMapping(value = "/export", produces = "text/csv")
     public ResponseEntity<String> exportExpenses(@PathVariable Long villaId) {
+        accessControlService.requireVillaRead(villaId);
         List<ExpenseDto> expenses = expenseRepository.findByVillaId(villaId)
                 .stream()
                 .map(this::mapToDto)
@@ -71,6 +77,7 @@ public class ExpenseController {
     public ResponseEntity<ApiResponse<ExpenseDto>> createExpense(
             @PathVariable Long villaId,
             @RequestBody ExpenseRequest request) {
+        accessControlService.requireFinancialManage(villaId);
 
         Expense expense = new Expense();
         expense.setVillaId(villaId);
@@ -97,6 +104,7 @@ public class ExpenseController {
             @PathVariable Long villaId,
             @PathVariable Long expenseId,
             @RequestBody ExpenseRequest request) {
+        accessControlService.requireFinancialManage(villaId);
 
         Expense expense = expenseRepository.findById(expenseId)
             .filter(e -> e.getVillaId().equals(villaId))
@@ -120,6 +128,7 @@ public class ExpenseController {
     public ResponseEntity<ApiResponse<Void>> deleteExpense(
             @PathVariable Long villaId,
             @PathVariable Long expenseId) {
+        accessControlService.requireFinancialManage(villaId);
         Expense expense = expenseRepository.findById(expenseId)
             .filter(e -> e.getVillaId().equals(villaId))
             .orElseThrow(() -> new ResourceNotFoundException("Expense not found with id: " + expenseId));

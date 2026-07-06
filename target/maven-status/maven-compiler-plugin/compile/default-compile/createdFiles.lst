@@ -4,6 +4,7 @@ com/villamanager/controller/PaymentController.class
 com/villamanager/dto/AuthResponse$AuthResponseBuilder.class
 com/villamanager/entity/UserRole.class
 com/villamanager/dto/UserDto$UserDtoBuilder.class
+com/villamanager/controller/VillaController.class
 com/villamanager/dto/ApiResponse.class
 com/villamanager/dto/ApartmentDto.class
 com/villamanager/entity/PaymentCategory.class

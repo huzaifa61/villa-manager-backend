@@ -6,6 +6,10 @@ CREATE TABLE IF NOT EXISTS users (
     password VARCHAR(255) NOT NULL,
     phone_number VARCHAR(20),
     role VARCHAR(50) NOT NULL,
+    villa_id BIGINT,
+    invite_token VARCHAR(255) UNIQUE,
+    invite_expires_at TIMESTAMP,
+    invite_accepted_at TIMESTAMP,
     is_active BOOLEAN DEFAULT true,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

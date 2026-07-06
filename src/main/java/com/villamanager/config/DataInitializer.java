@@ -46,6 +46,7 @@ public class DataInitializer implements CommandLineRunner {
             gm.setFullName("General Manager");
             gm.setPassword(passwordEncoder.encode("password123"));
             gm.setRole(UserRole.GENERAL_MANAGER);
+            gm.setVillaId(null);
             gm.setIsActive(true);
             gm.setCreatedAt(LocalDateTime.now());
             userRepository.save(gm);
@@ -57,6 +58,7 @@ public class DataInitializer implements CommandLineRunner {
             vm.setFullName("Villa Manager");
             vm.setPassword(passwordEncoder.encode("password123"));
             vm.setRole(UserRole.VILLA_MANAGER);
+            vm.setVillaId(1L);
             vm.setIsActive(true);
             vm.setCreatedAt(LocalDateTime.now());
             userRepository.save(vm);

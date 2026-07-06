@@ -7,6 +7,7 @@ import com.villamanager.entity.ServiceRequestStatus;
 import com.villamanager.exception.ResourceNotFoundException;
 import com.villamanager.repository.ApartmentRepository;
 import com.villamanager.repository.ServiceRequestRepository;
+import com.villamanager.service.AccessControlService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -28,8 +29,12 @@ public class ServiceRequestController {
     @Autowired
     private ApartmentRepository apartmentRepository;
 
+    @Autowired
+    private AccessControlService accessControlService;
+
     @GetMapping
     public ResponseEntity<ApiResponse<List<ServiceRequest>>> getServiceRequests(@PathVariable Long villaId) {
+        accessControlService.requireVillaRead(villaId);
         return ResponseEntity.ok(ApiResponse.success(
                 "Service requests retrieved successfully",
                 serviceRequestRepository.findByVillaId(villaId)
@@ -40,6 +45,7 @@ public class ServiceRequestController {
     public ResponseEntity<ApiResponse<ServiceRequest>> createServiceRequest(
             @PathVariable Long villaId,
             @RequestBody Map<String, Object> body) {
+        accessControlService.requireVillaRead(villaId);
         ServiceRequest request = new ServiceRequest();
         request.setVillaId(villaId);
         request.setApartmentId(resolveApartmentId(villaId, body.get("apartmentId")));
@@ -59,6 +65,7 @@ public class ServiceRequestController {
             @PathVariable Long villaId,
             @PathVariable Long requestId,
             @RequestBody Map<String, Object> body) {
+        accessControlService.requireServiceManage(villaId);
         ServiceRequest request = serviceRequestRepository.findById(requestId)
                 .filter(item -> item.getVillaId().equals(villaId))
                 .orElseThrow(() -> new ResourceNotFoundException("Service request not found"));
@@ -78,6 +85,7 @@ public class ServiceRequestController {
     public ResponseEntity<ApiResponse<Void>> deleteServiceRequest(
             @PathVariable Long villaId,
             @PathVariable Long requestId) {
+        accessControlService.requireServiceManage(villaId);
         ServiceRequest request = serviceRequestRepository.findById(requestId)
                 .filter(item -> item.getVillaId().equals(villaId))
                 .orElseThrow(() -> new ResourceNotFoundException("Service request not found"));

@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import com.villamanager.dto.ApiResponse;
 import com.villamanager.dto.RecurringExpenseTemplateRequest;
 import com.villamanager.entity.RecurringExpenseTemplate;
+import com.villamanager.service.AccessControlService;
 import com.villamanager.service.RecurringExpenseService;
 import java.time.LocalDate;
 import java.util.List;
@@ -16,9 +17,11 @@ import java.util.List;
 @CrossOrigin(origins = "*", maxAge = 3600)
 public class RecurringExpenseTemplateController {
     @Autowired private RecurringExpenseService recurringExpenseService;
+    @Autowired private AccessControlService accessControlService;
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<RecurringExpenseTemplate>>> getTemplates(@PathVariable Long villaId) {
+        accessControlService.requireVillaRead(villaId);
         return ResponseEntity.ok(ApiResponse.success("Recurring expense templates retrieved successfully", recurringExpenseService.getTemplates(villaId)));
     }
 
@@ -26,6 +29,7 @@ public class RecurringExpenseTemplateController {
     public ResponseEntity<ApiResponse<RecurringExpenseTemplate>> createTemplate(
             @PathVariable Long villaId,
             @RequestBody RecurringExpenseTemplateRequest request) {
+        accessControlService.requireFinancialManage(villaId);
         RecurringExpenseTemplate template = recurringExpenseService.createTemplate(villaId, request);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("Recurring expense template created successfully", template));
     }
@@ -35,6 +39,7 @@ public class RecurringExpenseTemplateController {
             @PathVariable Long villaId,
             @PathVariable Long templateId,
             @RequestBody RecurringExpenseTemplateRequest request) {
+        accessControlService.requireFinancialManage(villaId);
         RecurringExpenseTemplate template = recurringExpenseService.updateTemplate(villaId, templateId, request);
         return ResponseEntity.ok(ApiResponse.success("Recurring expense template updated successfully", template));
     }
@@ -43,12 +48,14 @@ public class RecurringExpenseTemplateController {
     public ResponseEntity<ApiResponse<Void>> deleteTemplate(
             @PathVariable Long villaId,
             @PathVariable Long templateId) {
+        accessControlService.requireFinancialManage(villaId);
         recurringExpenseService.deleteTemplate(villaId, templateId);
         return ResponseEntity.ok(ApiResponse.success("Recurring expense template deleted successfully", null));
     }
 
     @PostMapping("/run-due")
     public ResponseEntity<ApiResponse<Integer>> runDueTemplates(@PathVariable Long villaId) {
+        accessControlService.requireFinancialManage(villaId);
         int generated = recurringExpenseService.generateDueTemplates(villaId, LocalDate.now());
         return ResponseEntity.ok(ApiResponse.success("Due recurring expenses generated successfully", generated));
     }
