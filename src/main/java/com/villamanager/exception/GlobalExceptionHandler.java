@@ -41,6 +41,13 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error("Validation failed", message));
     }
 
+    @ExceptionHandler(InvalidOperationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseEntity<ApiResponse<?>> handleInvalidOperationException(InvalidOperationException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error("Bad request", ex.getMessage()));
+    }
+
     @ExceptionHandler(IllegalArgumentException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<ApiResponse<?>> handleIllegalArgumentException(IllegalArgumentException ex) {

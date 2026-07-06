@@ -7,6 +7,7 @@ import org.springframework.web.bind.annotation.*;
 import com.villamanager.dto.ApiResponse;
 import com.villamanager.dto.AuthResponse;
 import com.villamanager.dto.LoginRequest;
+import com.villamanager.dto.RegisterRequest;
 import com.villamanager.service.AuthenticationService;
 
 @RestController
@@ -21,6 +22,12 @@ public class AuthController {
     public ResponseEntity<ApiResponse<AuthResponse>> login(@RequestBody LoginRequest request) {
         AuthResponse response = authenticationService.login(request);
         return ResponseEntity.ok(ApiResponse.success("Login successful", response));
+    }
+
+    @PostMapping("/register")
+    public ResponseEntity<ApiResponse<AuthResponse>> register(@RequestBody RegisterRequest request) {
+        AuthResponse response = authenticationService.register(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.success("Registration successful", response));
     }
 
     @GetMapping("/validate")

@@ -1,7 +1,9 @@
 package com.villamanager.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.villamanager.dto.ApiResponse;
@@ -12,10 +14,12 @@ import com.villamanager.entity.Apartment;
 import com.villamanager.exception.ResourceNotFoundException;
 import com.villamanager.repository.ExpenseRepository;
 import com.villamanager.repository.ApartmentRepository;
+import com.villamanager.util.CsvExportUtil;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -35,6 +39,32 @@ public class ExpenseController {
         List<Expense> expenses = expenseRepository.findByVillaId(villaId);
         List<ExpenseDto> dtos = expenses.stream().map(this::mapToDto).collect(Collectors.toList());
         return ResponseEntity.ok(ApiResponse.success("Expenses retrieved successfully", dtos));
+    }
+
+    @GetMapping(value = "/export", produces = "text/csv")
+    public ResponseEntity<String> exportExpenses(@PathVariable Long villaId) {
+        List<ExpenseDto> expenses = expenseRepository.findByVillaId(villaId)
+                .stream()
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
+        String csv = CsvExportUtil.buildCsv(
+                Arrays.asList("ID", "Apartment ID", "Apartment", "Category ID", "Description", "Amount", "Expense Date", "Split"),
+                expenses.stream()
+                        .map(e -> Arrays.asList(
+                                e.getId(),
+                                e.getApartmentId(),
+                                e.getApartmentNumber() != null ? e.getApartmentNumber() : "All apartments",
+                                e.getCategoryId(),
+                                e.getDescription(),
+                                e.getAmount(),
+                                e.getExpenseDate(),
+                                e.getIsSplit()))
+                        .collect(Collectors.toList()));
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType("text/csv;charset=UTF-8"))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"expenses.csv\"")
+                .body(csv);
     }
 
     @PostMapping

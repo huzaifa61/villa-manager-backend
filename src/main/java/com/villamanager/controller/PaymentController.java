@@ -1,7 +1,9 @@
 package com.villamanager.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.villamanager.dto.ApiResponse;
@@ -13,9 +15,11 @@ import com.villamanager.entity.PaymentStatus;
 import com.villamanager.exception.ResourceNotFoundException;
 import com.villamanager.repository.PaymentRepository;
 import com.villamanager.repository.ApartmentRepository;
+import com.villamanager.util.CsvExportUtil;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -35,6 +39,33 @@ public class PaymentController {
         List<Payment> payments = paymentRepository.findByVillaId(villaId);
         List<PaymentDto> dtos = payments.stream().map(this::mapToDto).collect(Collectors.toList());
         return ResponseEntity.ok(ApiResponse.success("Payments retrieved successfully", dtos));
+    }
+
+    @GetMapping(value = "/export", produces = "text/csv")
+    public ResponseEntity<String> exportPayments(@PathVariable Long villaId) {
+        List<PaymentDto> payments = paymentRepository.findByVillaId(villaId)
+                .stream()
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
+        String csv = CsvExportUtil.buildCsv(
+                Arrays.asList("ID", "Apartment ID", "Apartment", "Amount", "Payment Date", "Method", "Reference", "Status", "Notes"),
+                payments.stream()
+                        .map(p -> Arrays.asList(
+                                p.getId(),
+                                p.getApartmentId(),
+                                p.getApartmentNumber(),
+                                p.getAmount(),
+                                p.getPaymentDate(),
+                                p.getPaymentMethod(),
+                                p.getReferenceNumber(),
+                                p.getStatus(),
+                                p.getNotes()))
+                        .collect(Collectors.toList()));
+
+        return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType("text/csv;charset=UTF-8"))
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"payments.csv\"")
+                .body(csv);
     }
 
     @PostMapping("/apartment/{apartmentId}")

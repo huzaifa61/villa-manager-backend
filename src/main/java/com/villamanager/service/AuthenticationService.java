@@ -5,9 +5,12 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import com.villamanager.dto.AuthResponse;
 import com.villamanager.dto.LoginRequest;
+import com.villamanager.dto.RegisterRequest;
 import com.villamanager.dto.UserDto;
 import com.villamanager.entity.User;
+import com.villamanager.entity.UserRole;
 import com.villamanager.exception.AuthenticationFailedException;
+import com.villamanager.exception.InvalidOperationException;
 import com.villamanager.repository.UserRepository;
 import com.villamanager.security.JwtTokenProvider;
 
@@ -38,6 +41,40 @@ public class AuthenticationService {
                 .tokenType("Bearer")
                 .expiresIn(86400L)
                 .user(mapToUserDto(user))
+                .build();
+    }
+
+    public AuthResponse register(RegisterRequest request) {
+        if (request.getFullName() == null || request.getFullName().trim().isEmpty()) {
+            throw new InvalidOperationException("Full name is required");
+        }
+        if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
+            throw new InvalidOperationException("Email is required");
+        }
+        if (request.getPassword() == null || request.getPassword().length() < 6) {
+            throw new InvalidOperationException("Password must be at least 6 characters");
+        }
+
+        String email = request.getEmail().trim().toLowerCase();
+        if (userRepository.existsByEmail(email)) {
+            throw new InvalidOperationException("An account already exists with this email");
+        }
+
+        User user = new User();
+        user.setEmail(email);
+        user.setFullName(request.getFullName().trim());
+        user.setPassword(passwordEncoder.encode(request.getPassword()));
+        user.setPhoneNumber(request.getPhoneNumber());
+        user.setRole(UserRole.VILLA_MANAGER);
+        user.setIsActive(true);
+        User saved = userRepository.save(user);
+        String token = jwtTokenProvider.generateToken(saved);
+
+        return AuthResponse.builder()
+                .accessToken(token)
+                .tokenType("Bearer")
+                .expiresIn(86400L)
+                .user(mapToUserDto(saved))
                 .build();
     }
 

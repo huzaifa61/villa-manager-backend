@@ -94,6 +94,25 @@ CREATE TABLE IF NOT EXISTS expenses (
     FOREIGN KEY (category_id) REFERENCES expense_categories(id)
 );
 
+-- Recurring expense templates table
+CREATE TABLE IF NOT EXISTS recurring_expense_templates (
+    id SERIAL PRIMARY KEY,
+    villa_id BIGINT NOT NULL,
+    apartment_id BIGINT,
+    category_id BIGINT NOT NULL,
+    template_name VARCHAR(255) NOT NULL,
+    description TEXT NOT NULL,
+    amount DECIMAL(10, 2) NOT NULL,
+    day_of_month INTEGER NOT NULL,
+    is_active BOOLEAN DEFAULT true,
+    last_generated_for_month VARCHAR(7),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (villa_id) REFERENCES villas(id),
+    FOREIGN KEY (apartment_id) REFERENCES apartments(id),
+    FOREIGN KEY (category_id) REFERENCES expense_categories(id)
+);
+
 -- Vendors table
 CREATE TABLE IF NOT EXISTS vendors (
     id SERIAL PRIMARY KEY,
@@ -138,5 +157,7 @@ CREATE INDEX idx_payments_villa_id ON payments(villa_id);
 CREATE INDEX idx_payments_apartment_id ON payments(apartment_id);
 CREATE INDEX idx_expenses_villa_id ON expenses(villa_id);
 CREATE INDEX idx_expenses_apartment_id ON expenses(apartment_id);
+CREATE INDEX idx_recurring_expense_templates_villa_id ON recurring_expense_templates(villa_id);
+CREATE INDEX idx_recurring_expense_templates_active ON recurring_expense_templates(is_active);
 CREATE INDEX idx_service_requests_villa_id ON service_requests(villa_id);
 CREATE INDEX idx_activity_logs_user_id ON activity_logs(user_id);
