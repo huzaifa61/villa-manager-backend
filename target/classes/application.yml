@@ -3,9 +3,9 @@ spring:
     name: villa-manager-backend
   
   datasource:
-    url: jdbc:postgresql://localhost:5432/villa_manager
-    username: villa_user
-    password: villa_password
+    url: jdbc:postgresql://hayabusa.proxy.rlwy.net:19979/railway
+    username: postgres
+    password: YyztViCkWukiwBCYuLtmhjZrEqnzsDCm
     driver-class-name: org.postgresql.Driver
   
   jpa:
@@ -38,6 +38,7 @@ spring:
       mode: never
 
 server:
+  address: 0.0.0.0
   port: 8080
   servlet:
     context-path: /api
@@ -53,3 +54,4 @@ logging:
     root: INFO
     com.villamanager: DEBUG
     org.springframework.security: DEBUG
+
