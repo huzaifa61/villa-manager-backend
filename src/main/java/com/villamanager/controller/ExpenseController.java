@@ -22,6 +22,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @RestController
@@ -79,24 +80,66 @@ public class ExpenseController {
             @RequestBody ExpenseRequest request) {
         accessControlService.requireFinancialManage(villaId);
 
-        Expense expense = new Expense();
-        expense.setVillaId(villaId);
-        expense.setApartmentId(request.getApartmentId());
-        expense.setCategoryId(request.getCategoryId() != null ? request.getCategoryId() : 1L);
-        expense.setDescription(request.getDescription());
-        expense.setAmount(request.getAmount());
-        expense.setExpenseDate(request.getExpenseDate() != null ? request.getExpenseDate() : LocalDate.now());
-        expense.setIsSplit(false);
-        expense.setCreatedAt(LocalDateTime.now());
-        expense.setUpdatedAt(LocalDateTime.now());
+        String splitType = request.getSplitType() != null ? request.getSplitType() : "SINGLE";
 
+        if ("SELECTED_CUSTOM".equals(splitType) && request.getCustomAmounts() != null && !request.getCustomAmounts().isEmpty()) {
+            // Create one expense per apartment with custom amount
+            Expense lastSaved = null;
+            for (Map.Entry<String, java.math.BigDecimal> entry : request.getCustomAmounts().entrySet()) {
+                Long aptId = Long.parseLong(entry.getKey());
+                java.math.BigDecimal amt = entry.getValue();
+                if (amt == null || amt.compareTo(java.math.BigDecimal.ZERO) <= 0) continue;
+                Expense e = buildExpense(villaId, request, aptId, amt);
+                lastSaved = expenseRepository.save(e);
+                applyToApartment(aptId, amt, true);
+            }
+            return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Expenses created successfully", lastSaved != null ? mapToDto(lastSaved) : null));
+        }
+
+        if ("SELECTED_EQUAL".equals(splitType) && request.getSelectedApartmentIds() != null && !request.getSelectedApartmentIds().isEmpty()) {
+            int count = request.getSelectedApartmentIds().size();
+            java.math.BigDecimal share = request.getAmount().divide(java.math.BigDecimal.valueOf(count), 2, java.math.RoundingMode.HALF_UP);
+            Expense lastSaved = null;
+            for (Long aptId : request.getSelectedApartmentIds()) {
+                Expense e = buildExpense(villaId, request, aptId, share);
+                lastSaved = expenseRepository.save(e);
+                applyToApartment(aptId, share, true);
+            }
+            return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.success("Expenses created successfully", lastSaved != null ? mapToDto(lastSaved) : null));
+        }
+
+        // SINGLE or ALL_EQUAL (original logic)
+        Expense expense = buildExpense(villaId, request, request.getApartmentId(), request.getAmount());
         Expense saved = expenseRepository.save(expense);
         applyExpenseAllocation(saved, true);
 
-        ExpenseDto dto = mapToDto(saved);
-
         return ResponseEntity.status(HttpStatus.CREATED)
-            .body(ApiResponse.success("Expense created successfully", dto));
+            .body(ApiResponse.success("Expense created successfully", mapToDto(saved)));
+    }
+
+    private Expense buildExpense(Long villaId, ExpenseRequest request, Long apartmentId, java.math.BigDecimal amount) {
+        Expense e = new Expense();
+        e.setVillaId(villaId);
+        e.setApartmentId(apartmentId);
+        e.setCategoryId(request.getCategoryId() != null ? request.getCategoryId() : 1L);
+        e.setDescription(request.getDescription());
+        e.setAmount(amount);
+        e.setExpenseDate(request.getExpenseDate() != null ? request.getExpenseDate() : LocalDate.now());
+        e.setIsSplit(apartmentId == null);
+        e.setCreatedAt(LocalDateTime.now());
+        e.setUpdatedAt(LocalDateTime.now());
+        return e;
+    }
+
+    private void applyToApartment(Long apartmentId, java.math.BigDecimal amount, boolean add) {
+        apartmentRepository.findById(apartmentId).ifPresent(apt -> {
+            java.math.BigDecimal current = apt.getCurrentBalance() != null ? apt.getCurrentBalance() : java.math.BigDecimal.ZERO;
+            apt.setCurrentBalance(add ? current.add(amount) : current.subtract(amount));
+            apt.setUpdatedAt(LocalDateTime.now());
+            apartmentRepository.save(apt);
+        });
     }
 
     @PutMapping("/{expenseId}")

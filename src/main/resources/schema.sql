@@ -19,6 +19,10 @@ CREATE TABLE IF NOT EXISTS users (
 CREATE TABLE IF NOT EXISTS villas (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
+    property_type VARCHAR(50) DEFAULT 'VILLA',
+    property_number VARCHAR(100),
+    region VARCHAR(100),
+    whatsapp_link VARCHAR(500),
     location VARCHAR(255),
     description TEXT,
     total_apartments INTEGER DEFAULT 0,

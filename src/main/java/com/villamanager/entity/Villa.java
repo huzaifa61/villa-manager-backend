@@ -19,6 +19,19 @@ public class Villa {
     @Column(nullable = false)
     private String name;
 
+    @Column(name = "property_type")
+    @Enumerated(EnumType.STRING)
+    private PropertyType propertyType = PropertyType.VILLA;
+
+    @Column(name = "property_number")
+    private String propertyNumber;
+
+    @Column(name = "region")
+    private String region;
+
+    @Column(name = "whatsapp_link")
+    private String whatsappLink;
+
     private String location;
 
     private String description;
