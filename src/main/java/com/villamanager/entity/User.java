@@ -52,6 +52,9 @@ public class User {
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
+    @Column(name = "push_token")
+    private String pushToken;
+
     @PrePersist
     public void prePersist() {
         this.createdAt = LocalDateTime.now();

@@ -16,10 +16,12 @@ import com.villamanager.exception.ResourceNotFoundException;
 import com.villamanager.repository.PaymentRepository;
 import com.villamanager.repository.ApartmentRepository;
 import com.villamanager.service.AccessControlService;
+import com.villamanager.service.ExportService;
 import com.villamanager.util.CsvExportUtil;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -37,6 +39,9 @@ public class PaymentController {
 
     @Autowired
     private AccessControlService accessControlService;
+
+    @Autowired
+    private ExportService exportService;
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<PaymentDto>>> getPayments(@PathVariable Long villaId) {
@@ -72,6 +77,54 @@ public class PaymentController {
                 .contentType(MediaType.parseMediaType("text/csv;charset=UTF-8"))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"payments.csv\"")
                 .body(csv);
+    }
+
+    @GetMapping(value = "/export-excel")
+    public ResponseEntity<byte[]> exportPaymentsExcel(@PathVariable Long villaId) {
+        accessControlService.requireVillaRead(villaId);
+        List<PaymentDto> payments = paymentRepository.findByVillaId(villaId)
+                .stream()
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
+
+        List<String> headers = Arrays.asList("ID", "Apartment", "Amount", "Payment Date", "Method", "Status");
+        List<List<Object>> rows = new ArrayList<>();
+        for (PaymentDto p : payments) {
+            List<Object> row = new ArrayList<>();
+            row.add(p.getId());
+            row.add(p.getApartmentNumber());
+            row.add(p.getAmount());
+            row.add(p.getPaymentDate());
+            row.add(p.getPaymentMethod());
+            row.add(p.getStatus());
+            rows.add(row);
+        }
+
+        return exportService.exportToExcel("payments", "Payments", headers, rows);
+    }
+
+    @GetMapping(value = "/export-pdf")
+    public ResponseEntity<byte[]> exportPaymentsPdf(@PathVariable Long villaId) {
+        accessControlService.requireVillaRead(villaId);
+        List<PaymentDto> payments = paymentRepository.findByVillaId(villaId)
+                .stream()
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
+
+        List<String> headers = Arrays.asList("ID", "Apartment", "Amount", "Payment Date", "Method", "Status");
+        List<List<Object>> rows = new ArrayList<>();
+        for (PaymentDto p : payments) {
+            List<Object> row = new ArrayList<>();
+            row.add(p.getId());
+            row.add(p.getApartmentNumber());
+            row.add(p.getAmount());
+            row.add(p.getPaymentDate());
+            row.add(p.getPaymentMethod());
+            row.add(p.getStatus());
+            rows.add(row);
+        }
+
+        return exportService.exportToPdf("payments", "Payments Report", headers, rows);
     }
 
     @PostMapping("/apartment/{apartmentId}")

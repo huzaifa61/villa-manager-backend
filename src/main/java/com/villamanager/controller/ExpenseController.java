@@ -15,11 +15,13 @@ import com.villamanager.exception.ResourceNotFoundException;
 import com.villamanager.repository.ExpenseRepository;
 import com.villamanager.repository.ApartmentRepository;
 import com.villamanager.service.AccessControlService;
+import com.villamanager.service.ExportService;
 import com.villamanager.util.CsvExportUtil;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +40,9 @@ public class ExpenseController {
 
     @Autowired
     private AccessControlService accessControlService;
+
+    @Autowired
+    private ExportService exportService;
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<ExpenseDto>>> getExpenses(@PathVariable Long villaId) {
@@ -72,6 +77,54 @@ public class ExpenseController {
                 .contentType(MediaType.parseMediaType("text/csv;charset=UTF-8"))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"expenses.csv\"")
                 .body(csv);
+    }
+
+    @GetMapping(value = "/export-excel")
+    public ResponseEntity<byte[]> exportExpensesExcel(@PathVariable Long villaId) {
+        accessControlService.requireVillaRead(villaId);
+        List<ExpenseDto> expenses = expenseRepository.findByVillaId(villaId)
+                .stream()
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
+
+        List<String> headers = Arrays.asList("ID", "Apartment", "Category", "Description", "Amount", "Expense Date");
+        List<List<Object>> rows = new ArrayList<>();
+        for (ExpenseDto e : expenses) {
+            List<Object> row = new ArrayList<>();
+            row.add(e.getId());
+            row.add(e.getApartmentNumber() != null ? e.getApartmentNumber() : "All apartments");
+            row.add(e.getCategoryName() != null ? e.getCategoryName() : "General");
+            row.add(e.getDescription());
+            row.add(e.getAmount());
+            row.add(e.getExpenseDate());
+            rows.add(row);
+        }
+
+        return exportService.exportToExcel("expenses", "Expenses", headers, rows);
+    }
+
+    @GetMapping(value = "/export-pdf")
+    public ResponseEntity<byte[]> exportExpensesPdf(@PathVariable Long villaId) {
+        accessControlService.requireVillaRead(villaId);
+        List<ExpenseDto> expenses = expenseRepository.findByVillaId(villaId)
+                .stream()
+                .map(this::mapToDto)
+                .collect(Collectors.toList());
+
+        List<String> headers = Arrays.asList("ID", "Apartment", "Category", "Description", "Amount", "Expense Date");
+        List<List<Object>> rows = new ArrayList<>();
+        for (ExpenseDto e : expenses) {
+            List<Object> row = new ArrayList<>();
+            row.add(e.getId());
+            row.add(e.getApartmentNumber() != null ? e.getApartmentNumber() : "All apartments");
+            row.add(e.getCategoryName() != null ? e.getCategoryName() : "General");
+            row.add(e.getDescription());
+            row.add(e.getAmount());
+            row.add(e.getExpenseDate());
+            rows.add(row);
+        }
+
+        return exportService.exportToPdf("expenses", "Expense Report", headers, rows);
     }
 
     @PostMapping

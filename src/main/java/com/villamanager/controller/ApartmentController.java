@@ -11,7 +11,10 @@ import com.villamanager.dto.ApartmentDto;
 import com.villamanager.dto.ApartmentRequest;
 import com.villamanager.service.AccessControlService;
 import com.villamanager.service.ApartmentService;
+import com.villamanager.service.ExportService;
 import com.villamanager.util.CsvExportUtil;
+
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,13 +22,16 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/v1/villas/{villaId}/apartments")
 @CrossOrigin(origins = "*", maxAge = 3600)
-public class ApartmentController {
+class ApartmentController {
 
     @Autowired
     private ApartmentService apartmentService;
 
     @Autowired
     private AccessControlService accessControlService;
+
+    @Autowired
+    private ExportService exportService;
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<ApartmentDto>>> getApartments(@PathVariable Long villaId) {
@@ -58,6 +64,52 @@ public class ApartmentController {
                 .contentType(MediaType.parseMediaType("text/csv;charset=UTF-8"))
                 .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"apartments.csv\"")
                 .body(csv);
+    }
+
+    @GetMapping(value = "/export-excel")
+    public ResponseEntity<byte[]> exportApartmentsExcel(@PathVariable Long villaId) {
+        accessControlService.requireVillaRead(villaId);
+        List<ApartmentDto> apartments = apartmentService.getApartments(villaId);
+        
+        List<String> headers = Arrays.asList("ID", "Apartment", "Owner", "Tenant", "Phone", "Status", "Current Balance", "Type");
+        List<List<Object>> rows = new ArrayList<>();
+        for (ApartmentDto a : apartments) {
+            List<Object> row = new ArrayList<>();
+            row.add(a.getId());
+            row.add(a.getApartmentNumber());
+            row.add(a.getOwnerName());
+            row.add(a.getTenantName());
+            row.add(a.getPhoneNumber());
+            row.add(a.getStatus());
+            row.add(a.getCurrentBalance());
+            row.add(a.getApartmentType());
+            rows.add(row);
+        }
+
+        return exportService.exportToExcel("apartments", "Apartments", headers, rows);
+    }
+
+    @GetMapping(value = "/export-pdf")
+    public ResponseEntity<byte[]> exportApartmentsPdf(@PathVariable Long villaId) {
+        accessControlService.requireVillaRead(villaId);
+        List<ApartmentDto> apartments = apartmentService.getApartments(villaId);
+        
+        List<String> headers = Arrays.asList("ID", "Apartment", "Owner", "Tenant", "Phone", "Status", "Current Balance", "Type");
+        List<List<Object>> rows = new ArrayList<>();
+        for (ApartmentDto a : apartments) {
+            List<Object> row = new ArrayList<>();
+            row.add(a.getId());
+            row.add(a.getApartmentNumber());
+            row.add(a.getOwnerName());
+            row.add(a.getTenantName());
+            row.add(a.getPhoneNumber());
+            row.add(a.getStatus());
+            row.add(a.getCurrentBalance());
+            row.add(a.getApartmentType());
+            rows.add(row);
+        }
+
+        return exportService.exportToPdf("apartments", "Apartments Report", headers, rows);
     }
 
     @PostMapping

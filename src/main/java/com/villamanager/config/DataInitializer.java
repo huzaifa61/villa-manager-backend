@@ -40,17 +40,29 @@ public class DataInitializer implements CommandLineRunner {
     }
 
     private void seedUsers() {
+        Long defaultVillaId = villaRepository.findAll().stream()
+                .findFirst().map(v -> v.getId()).orElse(1L);
+
         if (!userRepository.existsByEmail("gm@villa.com")) {
             User gm = new User();
             gm.setEmail("gm@villa.com");
             gm.setFullName("General Manager");
             gm.setPassword(passwordEncoder.encode("password123"));
             gm.setRole(UserRole.GENERAL_MANAGER);
-            gm.setVillaId(null);
+            gm.setVillaId(defaultVillaId);
             gm.setIsActive(true);
             gm.setCreatedAt(LocalDateTime.now());
             userRepository.save(gm);
             System.out.println("✅ GM user created: gm@villa.com / password123");
+        } else {
+            // Update existing GM to have villaId if null
+            userRepository.findByEmail("gm@villa.com").ifPresent(gm -> {
+                if (gm.getVillaId() == null) {
+                    gm.setVillaId(defaultVillaId);
+                    userRepository.save(gm);
+                    System.out.println("✅ Updated GM villaId to: " + defaultVillaId);
+                }
+            });
         }
         if (!userRepository.existsByEmail("manager@villa.com")) {
             User vm = new User();
@@ -58,7 +70,7 @@ public class DataInitializer implements CommandLineRunner {
             vm.setFullName("Villa Manager");
             vm.setPassword(passwordEncoder.encode("password123"));
             vm.setRole(UserRole.VILLA_MANAGER);
-            vm.setVillaId(1L);
+            vm.setVillaId(defaultVillaId);
             vm.setIsActive(true);
             vm.setCreatedAt(LocalDateTime.now());
             userRepository.save(vm);

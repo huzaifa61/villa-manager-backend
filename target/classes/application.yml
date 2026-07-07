@@ -42,7 +42,7 @@ spring:
 
 server:
   address: 0.0.0.0
-  port: 8080
+  port: ${SERVER_PORT:8080}
   servlet:
     context-path: /api
 
@@ -51,10 +51,21 @@ app:
   jwt:
     secret: VillaManagerProSecretKeyFor256BitHSAlgorithmMustBeLongEnoughForHS512
     expiration: 86400000
+  branding:
+    appName: Villa Manager Pro
+    appVersion: 1.0.0
+    logoUrl: ${LOGO_URL:https://via.placeholder.com/200x200?text=Villa+Manager}
+    companyName: Villa Manager
+    supportEmail: support@villamanager.com
+    phoneNumber: +971 4 XXX XXXX
+    address: Dubai, UAE
+  export:
+    maxRecords: 10000
+    chunkSize: 500
+    tempDir: ${TEMP_DIR:/tmp/villa-exports}
 
 logging:
   level:
     root: INFO
     com.villamanager: DEBUG
     org.springframework.security: DEBUG
-
