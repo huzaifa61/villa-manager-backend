@@ -16,6 +16,7 @@ import com.villamanager.repository.ExpenseRepository;
 import com.villamanager.repository.ApartmentRepository;
 import com.villamanager.service.AccessControlService;
 import com.villamanager.service.ExportService;
+import com.villamanager.service.NotificationService;
 import com.villamanager.util.CsvExportUtil;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -43,6 +44,9 @@ public class ExpenseController {
 
     @Autowired
     private ExportService exportService;
+
+    @Autowired
+    private NotificationService notificationService;
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<ExpenseDto>>> getExpenses(@PathVariable Long villaId) {
@@ -167,6 +171,13 @@ public class ExpenseController {
         Expense expense = buildExpense(villaId, request, request.getApartmentId(), request.getAmount());
         Expense saved = expenseRepository.save(expense);
         applyExpenseAllocation(saved, true);
+
+        // Notify all villa members
+        notificationService.notifyVilla(villaId,
+                "New Expense Added",
+                (request.getDescription() != null ? request.getDescription() : "Expense") + " — " + request.getAmount(),
+                "EXPENSE",
+                saved.getId());
 
         return ResponseEntity.status(HttpStatus.CREATED)
             .body(ApiResponse.success("Expense created successfully", mapToDto(saved)));
