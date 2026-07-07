@@ -39,7 +39,7 @@ public class EmailService {
             message.setText(body);
             mailSender.send(message);
         } catch (MailException ex) {
-            System.out.println("Unable to send invite email. Invite link for " + email + ": " + inviteUrl);
+            System.out.println("Unable to send invite email. Error: " + ex.getMessage() + ". Invite link for " + email + ": " + inviteUrl);
         }
         return inviteUrl;
     }
