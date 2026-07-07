@@ -43,14 +43,6 @@ public class VillaController {
                 villas.stream().map(this::toDto).collect(Collectors.toList())));
     }
 
-    @GetMapping("/{villaId}")
-    public ResponseEntity<ApiResponse<VillaDto>> getVilla(@PathVariable Long villaId) {
-        accessControlService.requireVillaRead(villaId);
-        Villa villa = villaRepository.findById(villaId)
-                .orElseThrow(() -> new RuntimeException("Villa not found"));
-        return ResponseEntity.ok(ApiResponse.success("Villa retrieved successfully", toDto(villa)));
-    }
-
     @PostMapping
     public ResponseEntity<ApiResponse<VillaDto>> createVilla(@RequestBody VillaRequest request) {
         accessControlService.requireGeneralManager();
@@ -69,37 +61,6 @@ public class VillaController {
         Villa saved = villaRepository.save(villa);
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ApiResponse.success("Property created successfully", toDto(saved)));
-    }
-
-    @PutMapping("/{villaId}")
-    public ResponseEntity<ApiResponse<VillaDto>> updateVilla(
-            @PathVariable Long villaId,
-            @RequestBody VillaRequest request) {
-        User user = accessControlService.currentUser();
-        // GM can update any villa, Villa Manager can only update their own
-        if (user.getRole() != UserRole.GENERAL_MANAGER) {
-            if (!villaId.equals(user.getVillaId())) {
-                throw new RuntimeException("Access denied");
-            }
-        }
-        Villa villa = villaRepository.findById(villaId)
-                .orElseThrow(() -> new RuntimeException("Villa not found"));
-        if (request.getName() != null) villa.setName(request.getName());
-        if (request.getPropertyType() != null) villa.setPropertyType(request.getPropertyType());
-        if (request.getPropertyNumber() != null) villa.setPropertyNumber(request.getPropertyNumber());
-        if (request.getRegion() != null) villa.setRegion(request.getRegion());
-        if (request.getWhatsappLink() != null) villa.setWhatsappLink(request.getWhatsappLink());
-        if (request.getLocation() != null) villa.setLocation(request.getLocation());
-        if (request.getDescription() != null) villa.setDescription(request.getDescription());
-        villa.setUpdatedAt(LocalDateTime.now());
-        return ResponseEntity.ok(ApiResponse.success("Property updated successfully", toDto(villaRepository.save(villa))));
-    }
-
-    @DeleteMapping("/{villaId}")
-    public ResponseEntity<ApiResponse<Void>> deleteVilla(@PathVariable Long villaId) {
-        accessControlService.requireGeneralManager();
-        villaRepository.deleteById(villaId);
-        return ResponseEntity.ok(ApiResponse.success("Property deleted successfully", null));
     }
 
     private VillaDto toDto(Villa v) {

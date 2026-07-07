@@ -65,6 +65,12 @@ public class VillaControlController {
         villa.setName(text(body.get("name"), villa.getName()));
         villa.setLocation(text(body.get("location"), villa.getLocation()));
         villa.setDescription(text(body.get("description"), villa.getDescription()));
+        if (body.get("propertyNumber") != null) villa.setPropertyNumber(text(body.get("propertyNumber"), villa.getPropertyNumber()));
+        if (body.get("region") != null) villa.setRegion(text(body.get("region"), villa.getRegion()));
+        if (body.get("whatsappLink") != null) villa.setWhatsappLink(text(body.get("whatsappLink"), villa.getWhatsappLink()));
+        if (body.get("propertyType") != null) {
+            try { villa.setPropertyType(com.villamanager.entity.PropertyType.valueOf(String.valueOf(body.get("propertyType")))); } catch (Exception ignored) {}
+        }
         villa.setUpdatedAt(LocalDateTime.now());
         return ResponseEntity.ok(ApiResponse.success("Villa updated successfully", villaRepository.save(villa)));
     }
