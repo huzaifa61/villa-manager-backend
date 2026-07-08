@@ -46,6 +46,11 @@ public class AccessControlService {
     }
 
     public void requireServiceManage(Long villaId) {
-        requireVillaManage(villaId);
+        // Viewers can create/update their own service requests, managers can do everything
+        User user = currentUser();
+        if (user.getRole() == UserRole.GENERAL_MANAGER) return;
+        if (user.getRole() == UserRole.VILLA_MANAGER && villaId.equals(user.getVillaId())) return;
+        if (user.getRole() == UserRole.VIEWER && villaId.equals(user.getVillaId())) return;
+        throw new AccessDeniedException("You do not have access to manage service requests for this villa");
     }
 }

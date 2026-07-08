@@ -4,6 +4,7 @@ import com.villamanager.entity.UserRole;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -14,4 +15,6 @@ public class InviteUserRequest {
     private String phoneNumber;
     private UserRole role;
     private Long villaId;
+    private LocalDateTime subscriptionExpiresAt;
+    private Integer maxViewers;
 }

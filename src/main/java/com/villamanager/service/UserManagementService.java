@@ -57,6 +57,16 @@ public class UserManagementService {
                 throw new InvalidOperationException("Villa Managers can only invite Viewer users");
             }
             villaId = current.getVillaId();
+
+            // Enforce maxViewers limit
+            int maxViewers = current.getMaxViewers() != null ? current.getMaxViewers() : 5;
+            long currentViewerCount = userRepository.findByVillaId(villaId).stream()
+                    .filter(u -> u.getRole() == UserRole.VIEWER)
+                    .count();
+            if (currentViewerCount >= maxViewers) {
+                throw new InvalidOperationException(
+                        "Viewer limit reached. You can have a maximum of " + maxViewers + " viewers. Contact the General Manager to increase your limit.");
+            }
         } else {
             throw new InvalidOperationException("Viewers cannot invite users");
         }
@@ -97,6 +107,8 @@ public class UserManagementService {
             if (!villaRepository.existsById(request.getVillaId())) throw new ResourceNotFoundException("Villa not found");
             user.setVillaId(request.getVillaId());
         }
+        if (request.getSubscriptionExpiresAt() != null) user.setSubscriptionExpiresAt(request.getSubscriptionExpiresAt());
+        if (request.getMaxViewers() != null) user.setMaxViewers(request.getMaxViewers());
         return mapToDto(userRepository.save(user));
     }
 
@@ -109,6 +121,8 @@ public class UserManagementService {
     }
 
     public UserDto mapToDto(User user) {
+        boolean subExpired = user.getSubscriptionExpiresAt() != null
+                && user.getSubscriptionExpiresAt().isBefore(LocalDateTime.now());
         return UserDto.builder()
                 .id(user.getId())
                 .email(user.getEmail())
@@ -118,6 +132,9 @@ public class UserManagementService {
                 .villaId(user.getVillaId())
                 .isActive(user.getIsActive())
                 .invitationStatus(invitationStatus(user))
+                .subscriptionExpiresAt(user.getSubscriptionExpiresAt())
+                .maxViewers(user.getMaxViewers() != null ? user.getMaxViewers() : 5)
+                .subscriptionExpired(subExpired)
                 .build();
     }
 

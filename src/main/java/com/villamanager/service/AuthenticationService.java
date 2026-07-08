@@ -40,6 +40,31 @@ public class AuthenticationService {
             throw new AuthenticationFailedException("This account has not accepted its invitation yet");
         }
 
+        // ── Subscription checks ──────────────────────────────────────────────
+
+        if (user.getRole() == UserRole.VILLA_MANAGER) {
+            // Direct subscription check for Villa Manager
+            if (user.getSubscriptionExpiresAt() != null
+                    && user.getSubscriptionExpiresAt().isBefore(LocalDateTime.now())) {
+                throw new AuthenticationFailedException(
+                        "Your subscription has expired. Please contact the General Manager to renew access.");
+            }
+        }
+
+        if (user.getRole() == UserRole.VIEWER && user.getVillaId() != null) {
+            // Find the Villa Manager for this viewer's villa
+            userRepository.findAll().stream()
+                    .filter(u -> u.getRole() == UserRole.VILLA_MANAGER
+                            && user.getVillaId().equals(u.getVillaId())
+                            && u.getSubscriptionExpiresAt() != null
+                            && u.getSubscriptionExpiresAt().isBefore(LocalDateTime.now()))
+                    .findFirst()
+                    .ifPresent(expiredManager -> {
+                        throw new AuthenticationFailedException(
+                                "Access suspended. The Villa Manager's subscription has expired. Please contact your administrator.");
+                    });
+        }
+
         String token = jwtTokenProvider.generateToken(user);
 
         return AuthResponse.builder()

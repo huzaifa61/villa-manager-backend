@@ -25,7 +25,8 @@ public class VendorController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<Vendor>>> getVendors() {
-        accessControlService.requireVendorManage();
+        // Viewers can read vendors (needed for service requests)
+        accessControlService.currentUser(); // just ensure authenticated
         return ResponseEntity.ok(ApiResponse.success("Vendors retrieved successfully", vendorRepository.findAll()));
     }
 

@@ -55,6 +55,13 @@ public class User {
     @Column(name = "push_token")
     private String pushToken;
 
+    // ── Subscription fields (set by General Manager for Villa Managers) ──────
+    @Column(name = "subscription_expires_at")
+    private LocalDateTime subscriptionExpiresAt;
+
+    @Column(name = "max_viewers")
+    private Integer maxViewers = 5; // default 5 viewers per villa manager
+
     @PrePersist
     public void prePersist() {
         this.createdAt = LocalDateTime.now();

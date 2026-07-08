@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import com.villamanager.entity.UserRole;
+import java.time.LocalDateTime;
 
 @Data
 @NoArgsConstructor
@@ -19,4 +20,7 @@ public class UserDto {
     private Long villaId;
     private Boolean isActive;
     private String invitationStatus;
+    private LocalDateTime subscriptionExpiresAt;
+    private Integer maxViewers;
+    private Boolean subscriptionExpired;
 }
