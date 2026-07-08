@@ -57,30 +57,22 @@ public class ExpenseController {
     }
 
     @GetMapping(value = "/export", produces = "text/csv")
-    public ResponseEntity<String> exportExpenses(@PathVariable Long villaId) {
+    public ResponseEntity<byte[]> exportExpenses(@PathVariable Long villaId) {
         accessControlService.requireVillaRead(villaId);
         List<ExpenseDto> expenses = expenseRepository.findByVillaId(villaId)
-                .stream()
-                .map(this::mapToDto)
-                .collect(Collectors.toList());
-        String csv = CsvExportUtil.buildCsv(
-                Arrays.asList("ID", "Apartment ID", "Apartment", "Category ID", "Description", "Amount", "Expense Date", "Split"),
-                expenses.stream()
-                        .map(e -> Arrays.asList(
-                                e.getId(),
-                                e.getApartmentId(),
-                                e.getApartmentNumber() != null ? e.getApartmentNumber() : "All apartments",
-                                e.getCategoryId(),
-                                e.getDescription(),
-                                e.getAmount(),
-                                e.getExpenseDate(),
-                                e.getIsSplit()))
-                        .collect(Collectors.toList()));
-
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType("text/csv;charset=UTF-8"))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"expenses.csv\"")
-                .body(csv);
+                .stream().map(this::mapToDto).collect(Collectors.toList());
+        List<String> headers = Arrays.asList("ID", "Apartment", "Category", "Description", "Amount", "Expense Date", "Split");
+        List<List<Object>> rows = new ArrayList<>();
+        for (ExpenseDto e : expenses) {
+            List<Object> row = new ArrayList<>();
+            row.add(e.getId());
+            row.add(e.getApartmentNumber() != null ? e.getApartmentNumber() : "All apartments");
+            row.add(e.getCategoryName() != null ? e.getCategoryName() : "General");
+            row.add(e.getDescription()); row.add(e.getAmount());
+            row.add(e.getExpenseDate()); row.add(e.getIsSplit());
+            rows.add(row);
+        }
+        return exportService.exportToCSV("expenses", "Expenses Report", headers, rows);
     }
 
     @GetMapping(value = "/export-excel")

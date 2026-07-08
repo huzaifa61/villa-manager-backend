@@ -52,31 +52,21 @@ public class PaymentController {
     }
 
     @GetMapping(value = "/export", produces = "text/csv")
-    public ResponseEntity<String> exportPayments(@PathVariable Long villaId) {
+    public ResponseEntity<byte[]> exportPayments(@PathVariable Long villaId) {
         accessControlService.requireVillaRead(villaId);
         List<PaymentDto> payments = paymentRepository.findByVillaId(villaId)
-                .stream()
-                .map(this::mapToDto)
-                .collect(Collectors.toList());
-        String csv = CsvExportUtil.buildCsv(
-                Arrays.asList("ID", "Apartment ID", "Apartment", "Amount", "Payment Date", "Method", "Reference", "Status", "Notes"),
-                payments.stream()
-                        .map(p -> Arrays.asList(
-                                p.getId(),
-                                p.getApartmentId(),
-                                p.getApartmentNumber(),
-                                p.getAmount(),
-                                p.getPaymentDate(),
-                                p.getPaymentMethod(),
-                                p.getReferenceNumber(),
-                                p.getStatus(),
-                                p.getNotes()))
-                        .collect(Collectors.toList()));
-
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType("text/csv;charset=UTF-8"))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"payments.csv\"")
-                .body(csv);
+                .stream().map(this::mapToDto).collect(Collectors.toList());
+        List<String> headers = Arrays.asList("ID", "Apartment", "Amount", "Payment Date", "Method", "Reference", "Status", "Notes");
+        List<List<Object>> rows = new ArrayList<>();
+        for (PaymentDto p : payments) {
+            List<Object> row = new ArrayList<>();
+            row.add(p.getId()); row.add(p.getApartmentNumber());
+            row.add(p.getAmount()); row.add(p.getPaymentDate());
+            row.add(p.getPaymentMethod()); row.add(p.getReferenceNumber());
+            row.add(p.getStatus()); row.add(p.getNotes());
+            rows.add(row);
+        }
+        return exportService.exportToCSV("payments", "Payments Report", headers, rows);
     }
 
     @GetMapping(value = "/export-excel")

@@ -13,6 +13,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -27,9 +28,13 @@ public class ExportService {
     private final ExportProperties exportProperties;
 
     public ResponseEntity<byte[]> exportToCSV(String fileName, List<String> headers, List<List<Object>> rows) {
+        return exportToCSV(fileName, fileName, headers, rows);
+    }
+
+    public ResponseEntity<byte[]> exportToCSV(String fileName, String title, List<String> headers, List<List<Object>> rows) {
         try {
-            String csv = CsvExportUtil.buildCsv(headers, rows);
-            return buildResponse(csv.getBytes(), fileName, "csv");
+            String csv = CsvExportUtil.buildCsvWithBranding(headers, rows, brandingProperties, title);
+            return buildResponse(csv.getBytes("UTF-8"), fileName, "csv");
         } catch (Exception e) {
             log.error("Error exporting to CSV", e);
             throw new RuntimeException("Failed to export CSV", e);

@@ -41,29 +41,20 @@ class ApartmentController {
     }
 
     @GetMapping(value = "/export", produces = "text/csv")
-    public ResponseEntity<String> exportApartments(@PathVariable Long villaId) {
+    public ResponseEntity<byte[]> exportApartments(@PathVariable Long villaId) {
         accessControlService.requireVillaRead(villaId);
         List<ApartmentDto> apartments = apartmentService.getApartments(villaId);
-        String csv = CsvExportUtil.buildCsv(
-                Arrays.asList("ID", "Apartment", "Owner", "Tenant", "Phone", "Email", "Status", "Opening Balance", "Current Balance", "Type"),
-                apartments.stream()
-                        .map(a -> Arrays.asList(
-                                a.getId(),
-                                a.getApartmentNumber(),
-                                a.getOwnerName(),
-                                a.getTenantName(),
-                                a.getPhoneNumber(),
-                                a.getEmail(),
-                                a.getStatus(),
-                                a.getOpeningBalance(),
-                                a.getCurrentBalance(),
-                                a.getApartmentType()))
-                        .collect(Collectors.toList()));
-
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType("text/csv;charset=UTF-8"))
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"apartments.csv\"")
-                .body(csv);
+        List<String> headers = Arrays.asList("ID", "Apartment", "Owner", "Tenant", "Phone", "Email", "Status", "Opening Balance", "Current Balance", "Type");
+        List<List<Object>> rows = new ArrayList<>();
+        for (ApartmentDto a : apartments) {
+            List<Object> row = new ArrayList<>();
+            row.add(a.getId()); row.add(a.getApartmentNumber()); row.add(a.getOwnerName());
+            row.add(a.getTenantName()); row.add(a.getPhoneNumber()); row.add(a.getEmail());
+            row.add(a.getStatus()); row.add(a.getOpeningBalance()); row.add(a.getCurrentBalance());
+            row.add(a.getApartmentType());
+            rows.add(row);
+        }
+        return exportService.exportToCSV("apartments", "Apartments Report", headers, rows);
     }
 
     @GetMapping(value = "/export-excel")
