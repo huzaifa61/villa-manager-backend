@@ -66,7 +66,7 @@ public class PaymentController {
             row.add(p.getStatus()); row.add(p.getNotes());
             rows.add(row);
         }
-        return exportService.exportToCSV("payments", "Payments Report", headers, rows);
+        return exportService.exportToCSV("payments", villaId, "Payments Report", headers, rows);
     }
 
     @GetMapping(value = "/export-excel")
@@ -90,7 +90,7 @@ public class PaymentController {
             rows.add(row);
         }
 
-        return exportService.exportToExcel("payments", "Payments", headers, rows);
+        return exportService.exportToExcel("payments", villaId, "Payments", headers, rows);
     }
 
     @GetMapping(value = "/export-pdf")
@@ -114,7 +114,7 @@ public class PaymentController {
             rows.add(row);
         }
 
-        return exportService.exportToPdf("payments", "Payments Report", headers, rows);
+        return exportService.exportToPdf("payments", villaId, "Payments Report", headers, rows);
     }
 
     @PostMapping("/apartment/{apartmentId}")

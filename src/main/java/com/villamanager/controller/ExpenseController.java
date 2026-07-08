@@ -72,7 +72,7 @@ public class ExpenseController {
             row.add(e.getExpenseDate()); row.add(e.getIsSplit());
             rows.add(row);
         }
-        return exportService.exportToCSV("expenses", "Expenses Report", headers, rows);
+        return exportService.exportToCSV("expenses", villaId, "Expenses Report", headers, rows);
     }
 
     @GetMapping(value = "/export-excel")
@@ -96,7 +96,7 @@ public class ExpenseController {
             rows.add(row);
         }
 
-        return exportService.exportToExcel("expenses", "Expenses", headers, rows);
+        return exportService.exportToExcel("expenses", villaId, "Expenses", headers, rows);
     }
 
     @GetMapping(value = "/export-pdf")
@@ -120,7 +120,7 @@ public class ExpenseController {
             rows.add(row);
         }
 
-        return exportService.exportToPdf("expenses", "Expense Report", headers, rows);
+        return exportService.exportToPdf("expenses", villaId, "Expense Report", headers, rows);
     }
 
     @PostMapping

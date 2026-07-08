@@ -54,7 +54,7 @@ class ApartmentController {
             row.add(a.getApartmentType());
             rows.add(row);
         }
-        return exportService.exportToCSV("apartments", "Apartments Report", headers, rows);
+        return exportService.exportToCSV("apartments", villaId, "Apartments Report", headers, rows);
     }
 
     @GetMapping(value = "/export-excel")
@@ -77,7 +77,7 @@ class ApartmentController {
             rows.add(row);
         }
 
-        return exportService.exportToExcel("apartments", "Apartments", headers, rows);
+        return exportService.exportToExcel("apartments", villaId, "Apartments", headers, rows);
     }
 
     @GetMapping(value = "/export-pdf")
@@ -100,7 +100,7 @@ class ApartmentController {
             rows.add(row);
         }
 
-        return exportService.exportToPdf("apartments", "Apartments Report", headers, rows);
+        return exportService.exportToPdf("apartments", villaId, "Apartments Report", headers, rows);
     }
 
     @PostMapping
