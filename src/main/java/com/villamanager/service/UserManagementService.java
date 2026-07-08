@@ -8,6 +8,7 @@ import com.villamanager.exception.InvalidOperationException;
 import com.villamanager.exception.ResourceNotFoundException;
 import com.villamanager.repository.UserRepository;
 import com.villamanager.repository.VillaRepository;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -16,6 +17,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 public class UserManagementService {
 
@@ -49,6 +51,10 @@ public class UserManagementService {
             if (requestedRole != UserRole.GENERAL_MANAGER && villaId == null) {
                 throw new InvalidOperationException("Villa is required for Villa Managers and Viewers");
             }
+            // GM inviting a VIEWER — still enforce the Villa Manager's maxViewers limit
+            if (requestedRole == UserRole.VIEWER && villaId != null) {
+                enforceViewerLimit(villaId);
+            }
         } else if (current.getRole() == UserRole.VILLA_MANAGER) {
             if (current.getVillaId() == null) {
                 throw new InvalidOperationException("Villa Managers must be assigned to a villa before inviting users");
@@ -57,16 +63,7 @@ public class UserManagementService {
                 throw new InvalidOperationException("Villa Managers can only invite Viewer users");
             }
             villaId = current.getVillaId();
-
-            // Enforce maxViewers limit
-            int maxViewers = current.getMaxViewers() != null ? current.getMaxViewers() : 5;
-            long currentViewerCount = userRepository.findByVillaId(villaId).stream()
-                    .filter(u -> u.getRole() == UserRole.VIEWER)
-                    .count();
-            if (currentViewerCount >= maxViewers) {
-                throw new InvalidOperationException(
-                        "Viewer limit reached. You can have a maximum of " + maxViewers + " viewers. Contact the General Manager to increase your limit.");
-            }
+            enforceViewerLimit(villaId);
         } else {
             throw new InvalidOperationException("Viewers cannot invite users");
         }
@@ -118,6 +115,35 @@ public class UserManagementService {
         if (current.getId().equals(userId)) throw new InvalidOperationException("You cannot delete your own account");
         User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
         userRepository.delete(user);
+    }
+
+    private void enforceViewerLimit(Long villaId) {
+        // Find the Villa Manager assigned to this villa to get their maxViewers setting
+        User villaManager = userRepository.findByVillaIdAndRole(villaId, UserRole.VILLA_MANAGER)
+                .stream()
+                .findFirst()
+                .orElse(null);
+
+        int maxViewers = (villaManager != null && villaManager.getMaxViewers() != null)
+                ? villaManager.getMaxViewers()
+                : 5; // default
+
+        long currentViewerCount = userRepository.findByVillaIdAndRole(villaId, UserRole.VIEWER)
+                .stream()
+                .count();
+
+        log.info("enforceViewerLimit: villaId={}, villaManagerId={}, maxViewers={}, currentViewerCount={}",
+                villaId,
+                villaManager != null ? villaManager.getId() : "none",
+                maxViewers,
+                currentViewerCount);
+
+        if (currentViewerCount >= maxViewers) {
+            throw new InvalidOperationException(
+                    "Viewer limit reached for this villa. Maximum allowed: " + maxViewers
+                    + ", current: " + currentViewerCount
+                    + ". Update the Villa Manager's subscription to increase the limit.");
+        }
     }
 
     public UserDto mapToDto(User user) {

@@ -9,6 +9,7 @@ import com.villamanager.exception.ResourceNotFoundException;
 import com.villamanager.repository.UserRepository;
 import com.villamanager.service.AccessControlService;
 import com.villamanager.service.UserManagementService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +19,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/v1/users")
 @CrossOrigin(origins = "*", maxAge = 3600)
@@ -79,9 +81,15 @@ public class UserController {
                 : null);
         }
         if (body.containsKey("maxViewers") && body.get("maxViewers") != null) {
-            user.setMaxViewers(Integer.parseInt(body.get("maxViewers").toString()));
+            try {
+                int maxViewers = Integer.parseInt(body.get("maxViewers").toString());
+                if (maxViewers < 0) maxViewers = 0;
+                user.setMaxViewers(maxViewers);
+            } catch (NumberFormatException ignored) {}
         }
         User saved = userRepository.save(user);
+        log.info("Subscription updated for user {}: maxViewers={}, expiresAt={}",
+                saved.getId(), saved.getMaxViewers(), saved.getSubscriptionExpiresAt());
         return ResponseEntity.ok(ApiResponse.success("Subscription updated successfully", userManagementService.mapToDto(saved)));
     }
 
