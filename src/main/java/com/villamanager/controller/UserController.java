@@ -72,8 +72,11 @@ public class UserController {
         if (user.getRole() != UserRole.VILLA_MANAGER) {
             throw new com.villamanager.exception.InvalidOperationException("Subscription can only be set for Villa Managers");
         }
-        if (body.containsKey("subscriptionExpiresAt") && body.get("subscriptionExpiresAt") != null) {
-            user.setSubscriptionExpiresAt(LocalDateTime.parse(body.get("subscriptionExpiresAt").toString()));
+        if (body.containsKey("subscriptionExpiresAt")) {
+            Object val = body.get("subscriptionExpiresAt");
+            user.setSubscriptionExpiresAt(val != null && !val.toString().isBlank()
+                ? LocalDateTime.parse(val.toString())
+                : null);
         }
         if (body.containsKey("maxViewers") && body.get("maxViewers") != null) {
             user.setMaxViewers(Integer.parseInt(body.get("maxViewers").toString()));
