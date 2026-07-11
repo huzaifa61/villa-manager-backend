@@ -21,7 +21,9 @@ public final class CsvExportUtil {
         if (branding != null) {
             String now = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
             csv.append("\"").append(branding.getAppName()).append("\"\n");
-            csv.append("\"").append(branding.getCompanyName()).append("\"\n");
+            if (branding.getCompanyName() != null && !branding.getCompanyName().isBlank()) {
+                csv.append("\"Villa: ").append(branding.getCompanyName()).append("\"\n");
+            }
             if (reportTitle != null && !reportTitle.isBlank()) {
                 csv.append("\"Report: ").append(reportTitle).append("\"\n");
             }

@@ -66,7 +66,7 @@ public class PdfExportUtil {
 
     private static void addHeader(Document document, String title, BrandingProperties branding) throws DocumentException {
         // Company name and logo placeholder
-        Paragraph companyName = new Paragraph(branding.getCompanyName(), getBoldFont());
+        Paragraph companyName = new Paragraph("Villa: " + branding.getCompanyName(), getBoldFont());
         companyName.setAlignment(Element.ALIGN_CENTER);
         document.add(companyName);
         

@@ -28,6 +28,9 @@ public class Vendor {
 
     private String serviceType;
 
+    /** Geographic area / location used to scope vendors to a villa manager's region. */
+    private String region;
+
     @Column(nullable = false)
     private Boolean isActive = true;
 }

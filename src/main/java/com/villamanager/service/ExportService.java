@@ -18,9 +18,11 @@ import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -95,6 +97,31 @@ public class ExportService {
     private Villa resolveVilla(Long villaId) {
         if (villaId == null) return null;
         return villaRepository.findById(villaId).orElse(null);
+    }
+
+    public String resolveVillaName(Long villaId) {
+        Villa villa = resolveVilla(villaId);
+        if (villa != null && villa.getName() != null && !villa.getName().isBlank()) {
+            return villa.getName().trim();
+        }
+        return brandingProperties.getCompanyName();
+    }
+
+    public List<String> withVillaColumn(List<String> headers) {
+        List<String> updated = new ArrayList<>();
+        updated.add("Villa");
+        updated.addAll(headers);
+        return updated;
+    }
+
+    public List<List<Object>> withVillaColumn(Long villaId, List<List<Object>> rows) {
+        String villaName = resolveVillaName(villaId);
+        return rows.stream().map(row -> {
+            List<Object> updated = new ArrayList<>();
+            updated.add(villaName);
+            updated.addAll(row);
+            return updated;
+        }).collect(Collectors.toList());
     }
 
     /**

@@ -44,7 +44,7 @@ class ApartmentController {
     public ResponseEntity<byte[]> exportApartments(@PathVariable Long villaId) {
         accessControlService.requireVillaRead(villaId);
         List<ApartmentDto> apartments = apartmentService.getApartments(villaId);
-        List<String> headers = Arrays.asList("ID", "Apartment", "Owner", "Tenant", "Phone", "Email", "Status", "Opening Balance", "Current Balance", "Type");
+        List<String> headers = exportService.withVillaColumn(Arrays.asList("ID", "Apartment", "Owner", "Tenant", "Phone", "Email", "Status", "Opening Balance", "Current Balance", "Type"));
         List<List<Object>> rows = new ArrayList<>();
         for (ApartmentDto a : apartments) {
             List<Object> row = new ArrayList<>();
@@ -54,7 +54,7 @@ class ApartmentController {
             row.add(a.getApartmentType());
             rows.add(row);
         }
-        return exportService.exportToCSV("apartments", villaId, "Apartments Report", headers, rows);
+        return exportService.exportToCSV("apartments", villaId, "Apartments Report", headers, exportService.withVillaColumn(villaId, rows));
     }
 
     @GetMapping(value = "/export-excel")
@@ -62,7 +62,7 @@ class ApartmentController {
         accessControlService.requireVillaRead(villaId);
         List<ApartmentDto> apartments = apartmentService.getApartments(villaId);
         
-        List<String> headers = Arrays.asList("ID", "Apartment", "Owner", "Tenant", "Phone", "Status", "Current Balance", "Type");
+        List<String> headers = exportService.withVillaColumn(Arrays.asList("ID", "Apartment", "Owner", "Tenant", "Phone", "Status", "Current Balance", "Type"));
         List<List<Object>> rows = new ArrayList<>();
         for (ApartmentDto a : apartments) {
             List<Object> row = new ArrayList<>();
@@ -77,7 +77,7 @@ class ApartmentController {
             rows.add(row);
         }
 
-        return exportService.exportToExcel("apartments", villaId, "Apartments", headers, rows);
+        return exportService.exportToExcel("apartments", villaId, "Apartments", headers, exportService.withVillaColumn(villaId, rows));
     }
 
     @GetMapping(value = "/export-pdf")
@@ -85,7 +85,7 @@ class ApartmentController {
         accessControlService.requireVillaRead(villaId);
         List<ApartmentDto> apartments = apartmentService.getApartments(villaId);
         
-        List<String> headers = Arrays.asList("ID", "Apartment", "Owner", "Tenant", "Phone", "Status", "Current Balance", "Type");
+        List<String> headers = exportService.withVillaColumn(Arrays.asList("ID", "Apartment", "Owner", "Tenant", "Phone", "Status", "Current Balance", "Type"));
         List<List<Object>> rows = new ArrayList<>();
         for (ApartmentDto a : apartments) {
             List<Object> row = new ArrayList<>();
@@ -100,7 +100,7 @@ class ApartmentController {
             rows.add(row);
         }
 
-        return exportService.exportToPdf("apartments", villaId, "Apartments Report", headers, rows);
+        return exportService.exportToPdf("apartments", villaId, "Apartments Report", headers, exportService.withVillaColumn(villaId, rows));
     }
 
     @PostMapping

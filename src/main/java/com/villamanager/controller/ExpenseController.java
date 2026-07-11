@@ -61,7 +61,7 @@ public class ExpenseController {
         accessControlService.requireVillaRead(villaId);
         List<ExpenseDto> expenses = expenseRepository.findByVillaId(villaId)
                 .stream().map(this::mapToDto).collect(Collectors.toList());
-        List<String> headers = Arrays.asList("ID", "Apartment", "Category", "Description", "Amount", "Expense Date", "Split");
+        List<String> headers = exportService.withVillaColumn(Arrays.asList("ID", "Apartment", "Category", "Description", "Amount", "Expense Date", "Split"));
         List<List<Object>> rows = new ArrayList<>();
         for (ExpenseDto e : expenses) {
             List<Object> row = new ArrayList<>();
@@ -72,7 +72,7 @@ public class ExpenseController {
             row.add(e.getExpenseDate()); row.add(e.getIsSplit());
             rows.add(row);
         }
-        return exportService.exportToCSV("expenses", villaId, "Expenses Report", headers, rows);
+        return exportService.exportToCSV("expenses", villaId, "Expenses Report", headers, exportService.withVillaColumn(villaId, rows));
     }
 
     @GetMapping(value = "/export-excel")
@@ -83,7 +83,7 @@ public class ExpenseController {
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
 
-        List<String> headers = Arrays.asList("ID", "Apartment", "Category", "Description", "Amount", "Expense Date");
+        List<String> headers = exportService.withVillaColumn(Arrays.asList("ID", "Apartment", "Category", "Description", "Amount", "Expense Date"));
         List<List<Object>> rows = new ArrayList<>();
         for (ExpenseDto e : expenses) {
             List<Object> row = new ArrayList<>();
@@ -96,7 +96,7 @@ public class ExpenseController {
             rows.add(row);
         }
 
-        return exportService.exportToExcel("expenses", villaId, "Expenses", headers, rows);
+        return exportService.exportToExcel("expenses", villaId, "Expenses", headers, exportService.withVillaColumn(villaId, rows));
     }
 
     @GetMapping(value = "/export-pdf")
@@ -107,7 +107,7 @@ public class ExpenseController {
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
 
-        List<String> headers = Arrays.asList("ID", "Apartment", "Category", "Description", "Amount", "Expense Date");
+        List<String> headers = exportService.withVillaColumn(Arrays.asList("ID", "Apartment", "Category", "Description", "Amount", "Expense Date"));
         List<List<Object>> rows = new ArrayList<>();
         for (ExpenseDto e : expenses) {
             List<Object> row = new ArrayList<>();
@@ -120,7 +120,7 @@ public class ExpenseController {
             rows.add(row);
         }
 
-        return exportService.exportToPdf("expenses", villaId, "Expense Report", headers, rows);
+        return exportService.exportToPdf("expenses", villaId, "Expense Report", headers, exportService.withVillaColumn(villaId, rows));
     }
 
     @PostMapping

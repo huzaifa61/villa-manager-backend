@@ -2,9 +2,8 @@ package com.villamanager.controller;
 
 import com.villamanager.dto.ApiResponse;
 import com.villamanager.entity.Vendor;
-import com.villamanager.exception.ResourceNotFoundException;
-import com.villamanager.repository.VendorRepository;
 import com.villamanager.service.AccessControlService;
+import com.villamanager.service.VendorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,49 +17,33 @@ import java.util.List;
 public class VendorController {
 
     @Autowired
-    private VendorRepository vendorRepository;
+    private VendorService vendorService;
 
     @Autowired
     private AccessControlService accessControlService;
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<Vendor>>> getVendors() {
-        // Viewers can read vendors (needed for service requests)
-        accessControlService.currentUser(); // just ensure authenticated
-        return ResponseEntity.ok(ApiResponse.success("Vendors retrieved successfully", vendorRepository.findAll()));
+        accessControlService.currentUser();
+        return ResponseEntity.ok(ApiResponse.success("Vendors retrieved successfully", vendorService.listForCurrentUser()));
     }
 
     @PostMapping
     public ResponseEntity<ApiResponse<Vendor>> createVendor(@RequestBody Vendor vendor) {
-        accessControlService.requireVendorManage();
-        vendor.setId(null);
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(ApiResponse.success("Vendor created successfully", vendorRepository.save(vendor)));
+                .body(ApiResponse.success("Vendor created successfully", vendorService.create(vendor)));
     }
 
     @PutMapping("/{vendorId}")
     public ResponseEntity<ApiResponse<Vendor>> updateVendor(
             @PathVariable Long vendorId,
             @RequestBody Vendor body) {
-        accessControlService.requireVendorManage();
-        Vendor vendor = vendorRepository.findById(vendorId)
-                .orElseThrow(() -> new ResourceNotFoundException("Vendor not found"));
-        vendor.setName(body.getName());
-        vendor.setContactPerson(body.getContactPerson());
-        vendor.setEmail(body.getEmail());
-        vendor.setPhoneNumber(body.getPhoneNumber());
-        vendor.setAddress(body.getAddress());
-        vendor.setServiceType(body.getServiceType());
-        vendor.setIsActive(body.getIsActive() != null ? body.getIsActive() : true);
-        return ResponseEntity.ok(ApiResponse.success("Vendor updated successfully", vendorRepository.save(vendor)));
+        return ResponseEntity.ok(ApiResponse.success("Vendor updated successfully", vendorService.update(vendorId, body)));
     }
 
     @DeleteMapping("/{vendorId}")
     public ResponseEntity<ApiResponse<Void>> deleteVendor(@PathVariable Long vendorId) {
-        accessControlService.requireVendorManage();
-        Vendor vendor = vendorRepository.findById(vendorId)
-                .orElseThrow(() -> new ResourceNotFoundException("Vendor not found"));
-        vendorRepository.delete(vendor);
+        vendorService.delete(vendorId);
         return ResponseEntity.ok(ApiResponse.success("Vendor deleted successfully", null));
     }
 }

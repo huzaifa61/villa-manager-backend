@@ -21,7 +21,7 @@ public class Payment {
     @Column(nullable = false)
     private Long villaId;
 
-    @Column(nullable = false)
+    @Column
     private Long apartmentId;
 
     @Column(nullable = false)
