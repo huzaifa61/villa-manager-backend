@@ -10,6 +10,7 @@ import com.villamanager.dto.PaymentRequest;
 import com.villamanager.entity.Apartment;
 import com.villamanager.entity.Payment;
 import com.villamanager.entity.PaymentStatus;
+import com.villamanager.exception.InvalidOperationException;
 import com.villamanager.exception.ResourceNotFoundException;
 import com.villamanager.repository.PaymentRepository;
 import com.villamanager.repository.ApartmentRepository;
@@ -169,7 +170,32 @@ public class PaymentController {
             return lastSaved != null ? mapToDto(lastSaved) : null;
         }
 
-        Payment payment = buildPayment(villaId, request, request.getApartmentId(), request.getAmount(), request.getApartmentId() == null);
+        if ("ALL_EQUAL".equals(splitType)) {
+            List<Apartment> apartments = apartmentRepository.findByVillaId(villaId);
+            if (apartments.isEmpty()) {
+                throw new InvalidOperationException("No apartments available to split this payment");
+            }
+
+            BigDecimal total = request.getAmount();
+            int count = apartments.size();
+            BigDecimal share = total.divide(BigDecimal.valueOf(count), 2, RoundingMode.HALF_UP);
+            BigDecimal remainder = total.subtract(share.multiply(BigDecimal.valueOf(count)));
+
+            Payment lastSaved = null;
+            for (int i = 0; i < apartments.size(); i++) {
+                Apartment apartment = apartments.get(i);
+                BigDecimal aptAmount = share;
+                if (i == apartments.size() - 1) {
+                    aptAmount = aptAmount.add(remainder);
+                }
+                Payment payment = buildPayment(villaId, request, apartment.getId(), aptAmount, false);
+                lastSaved = paymentRepository.save(payment);
+                applyToApartment(apartment.getId(), aptAmount, true);
+            }
+            return lastSaved != null ? mapToDto(lastSaved) : null;
+        }
+
+        Payment payment = buildPayment(villaId, request, request.getApartmentId(), request.getAmount(), false);
         Payment saved = paymentRepository.save(payment);
         applyPaymentAllocation(saved, true);
         return mapToDto(saved);
