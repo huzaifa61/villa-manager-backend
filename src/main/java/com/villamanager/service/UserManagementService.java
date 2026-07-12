@@ -4,6 +4,7 @@ import com.villamanager.dto.InviteUserRequest;
 import com.villamanager.dto.UserDto;
 import com.villamanager.entity.User;
 import com.villamanager.entity.UserRole;
+import com.villamanager.exception.AccessDeniedException;
 import com.villamanager.exception.InvalidOperationException;
 import com.villamanager.exception.ResourceNotFoundException;
 import com.villamanager.repository.UserRepository;
@@ -110,11 +111,31 @@ public class UserManagementService {
     }
 
     public void deleteUser(Long userId) {
-        accessControlService.requireGeneralManager();
         User current = accessControlService.currentUser();
-        if (current.getId().equals(userId)) throw new InvalidOperationException("You cannot delete your own account");
-        User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("User not found"));
-        userRepository.delete(user);
+        if (current.getId().equals(userId)) {
+            throw new InvalidOperationException("You cannot delete your own account");
+        }
+
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if (current.getRole() == UserRole.GENERAL_MANAGER) {
+            userRepository.delete(user);
+            return;
+        }
+
+        if (current.getRole() == UserRole.VILLA_MANAGER) {
+            if (user.getRole() != UserRole.VIEWER) {
+                throw new AccessDeniedException("Villa Managers can only delete Viewer users");
+            }
+            if (current.getVillaId() == null || !current.getVillaId().equals(user.getVillaId())) {
+                throw new AccessDeniedException("You can only delete viewers assigned to your villa");
+            }
+            userRepository.delete(user);
+            return;
+        }
+
+        throw new AccessDeniedException("You do not have permission to delete users");
     }
 
     private void enforceViewerLimit(Long villaId) {
