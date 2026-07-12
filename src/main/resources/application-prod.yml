@@ -10,11 +10,11 @@ spring:
     show-sql: false
 
 server:
-  port: 8080
+  port: ${PORT:8080}
   ssl:
-    enabled: true
-    key-store: ${SSL_KEYSTORE_PATH}
-    key-store-password: ${SSL_KEYSTORE_PASSWORD}
+    enabled: ${SERVER_SSL_ENABLED:false}
+    key-store: ${SSL_KEYSTORE_PATH:}
+    key-store-password: ${SSL_KEYSTORE_PASSWORD:}
     key-store-type: PKCS12
 
 logging:
