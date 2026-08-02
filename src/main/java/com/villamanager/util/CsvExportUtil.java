@@ -27,9 +27,6 @@ public final class CsvExportUtil {
             if (reportTitle != null && !reportTitle.isBlank()) {
                 csv.append("\"Report: ").append(reportTitle).append("\"\n");
             }
-            if (LogoExportHelper.hasLogo(branding.getLogoData())) {
-                csv.append("\"Logo: embedded in PDF exports\"\n");
-            }
             csv.append("\"Generated: ").append(now).append("\"\n");
             String contact = BrandingExportHelper.contactLine(branding);
             if (!contact.isBlank()) {

@@ -56,7 +56,7 @@ public class PdfExportUtil {
         Phrase phrase;
         boolean mostlyArabic = PdfFontProvider.isMostlyArabic(text);
         if (mostlyArabic) {
-            phrase = PdfFontProvider.arabicPhrase(text, size, bold);
+            phrase = PdfFontProvider.arabicCellPhrase(text, size, bold);
         } else if (PdfFontProvider.containsArabic(text)) {
             phrase = PdfFontProvider.phrase(text, size, bold);
         } else {
@@ -68,6 +68,9 @@ public class PdfExportUtil {
         cell.setBackgroundColor(bold ? BaseColor.LIGHT_GRAY : BaseColor.WHITE);
         cell.setHorizontalAlignment(Element.ALIGN_CENTER);
         cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+        if (mostlyArabic) {
+            cell.setRunDirection(PdfWriter.RUN_DIRECTION_RTL);
+        }
         return cell;
     }
 
@@ -95,7 +98,12 @@ public class PdfExportUtil {
         String villaName = branding.getCompanyName();
         if (BrandingExportHelper.hasText(villaName)) {
             String trimmedName = villaName.trim();
-            Paragraph villaLine = new Paragraph(PdfFontProvider.mixedPhrase("Villa: ", trimmedName, 12, true));
+            Paragraph villaLine;
+            if (PdfFontProvider.isMostlyArabic(trimmedName)) {
+                villaLine = new Paragraph(PdfFontProvider.mixedPhrase("Villa: ", trimmedName, 14, true));
+            } else {
+                villaLine = new Paragraph(PdfFontProvider.boldPhrase("Villa: " + trimmedName));
+            }
             villaLine.setAlignment(Element.ALIGN_CENTER);
             villaLine.setSpacingBefore(6);
             document.add(villaLine);
