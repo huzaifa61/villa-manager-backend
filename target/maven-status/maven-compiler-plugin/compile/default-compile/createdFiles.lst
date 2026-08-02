@@ -1,5 +1,6 @@
 com/villamanager/dto/AuthResponse$AuthResponseBuilder.class
 com/villamanager/dto/UserDto$UserDtoBuilder.class
+com/villamanager/controller/ApartmentExportSupport.class
 com/villamanager/service/UserManagementService.class
 com/villamanager/dto/ApartmentDto.class
 com/villamanager/entity/PaymentCategory.class
@@ -58,6 +59,7 @@ com/villamanager/dto/PaymentRequest.class
 com/villamanager/entity/Expense.class
 com/villamanager/entity/Notification.class
 com/villamanager/dto/AuthResponse.class
+com/villamanager/service/ApartmentService$ApartmentFinance.class
 com/villamanager/service/VendorService.class
 com/villamanager/controller/TableExportController.class
 com/villamanager/entity/Payment.class

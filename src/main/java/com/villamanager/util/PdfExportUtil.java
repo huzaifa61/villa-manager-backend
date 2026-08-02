@@ -61,7 +61,7 @@ public class PdfExportUtil {
             cell.setHorizontalAlignment(Element.ALIGN_CENTER);
             cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
             cell.setRunDirection(PdfWriter.RUN_DIRECTION_LTR);
-            Paragraph paragraph = new Paragraph(PdfFontProvider.arabicPhrase(text, size, bold));
+            Paragraph paragraph = new Paragraph(PdfFontProvider.arabicPhrase(text, bold ? 14f : size, bold));
             paragraph.setAlignment(Element.ALIGN_CENTER);
             cell.addElement(paragraph);
             return cell;
@@ -90,8 +90,8 @@ public class PdfExportUtil {
                         branding.getLogoData(), 110, 110);
                 logo.scaleToFit(logoSize.width(), logoSize.height());
                 logo.setAlignment(Element.ALIGN_CENTER);
+                logo.setSpacingAfter(18f);
                 document.add(logo);
-                document.add(Chunk.NEWLINE);
             } catch (Exception e) {
                 log.warn("Could not embed logo in PDF export", e);
             }
@@ -100,21 +100,21 @@ public class PdfExportUtil {
         if (BrandingExportHelper.hasText(branding.getAppName())) {
             Paragraph appName = new Paragraph(PdfFontProvider.titlePhrase(branding.getAppName().trim()));
             appName.setAlignment(Element.ALIGN_CENTER);
+            appName.setSpacingBefore(4);
             document.add(appName);
         }
 
         String villaName = branding.getCompanyName();
         if (BrandingExportHelper.hasText(villaName)) {
             String trimmedName = villaName.trim();
-            Paragraph villaLine;
             if (PdfFontProvider.isMostlyArabic(trimmedName)) {
-                villaLine = new Paragraph(PdfFontProvider.arabicPhrase(trimmedName, 14, true));
+                addArabicHeaderLine(document, trimmedName);
             } else {
-                villaLine = new Paragraph(PdfFontProvider.boldPhrase("Villa: " + trimmedName));
+                Paragraph villaLine = new Paragraph(PdfFontProvider.boldPhrase("Villa: " + trimmedName));
+                villaLine.setAlignment(Element.ALIGN_CENTER);
+                villaLine.setSpacingBefore(10);
+                document.add(villaLine);
             }
-            villaLine.setAlignment(Element.ALIGN_CENTER);
-            villaLine.setSpacingBefore(6);
-            document.add(villaLine);
         }
 
         if (BrandingExportHelper.hasText(title)) {
@@ -130,6 +130,20 @@ public class PdfExportUtil {
         datePara.setSpacingBefore(8);
         datePara.setSpacingAfter(16);
         document.add(datePara);
+    }
+
+    /** Same Arabic cell renderer as the data table, without border/gray background. */
+    private static void addArabicHeaderLine(Document document, String text) throws DocumentException {
+        PdfPTable line = new PdfPTable(1);
+        line.setWidthPercentage(100);
+        line.setSpacingBefore(10);
+        PdfPCell cell = textCell(text, true);
+        cell.setBorder(Rectangle.NO_BORDER);
+        cell.setBackgroundColor(BaseColor.WHITE);
+        cell.setPaddingTop(4);
+        cell.setPaddingBottom(8);
+        line.addCell(cell);
+        document.add(line);
     }
 
     private static void addFooter(Document document, BrandingProperties branding) throws DocumentException {

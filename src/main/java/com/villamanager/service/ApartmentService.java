@@ -152,27 +152,43 @@ public class ApartmentService {
 
         List<Expense> expenses = expenseRepository.findByVillaId(villaId);
         List<Payment> payments = paymentRepository.findByVillaId(villaId);
-        BigDecimal globalExpenseTotal = expenses.stream()
-            .filter(e -> e.getApartmentId() == null)
-            .map(e -> e.getAmount() != null ? e.getAmount() : BigDecimal.ZERO)
-            .reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal globalShare = globalExpenseTotal.divide(BigDecimal.valueOf(apartments.size()), 2, RoundingMode.HALF_UP);
+        int apartmentCount = apartments.size();
 
         for (Apartment apartment : apartments) {
-            BigDecimal opening = apartment.getOpeningBalance() != null ? apartment.getOpeningBalance() : BigDecimal.ZERO;
-            BigDecimal directExpenses = expenses.stream()
-                .filter(e -> apartment.getId().equals(e.getApartmentId()))
-                .map(e -> e.getAmount() != null ? e.getAmount() : BigDecimal.ZERO)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-            BigDecimal paid = payments.stream()
-                .filter(p -> apartment.getId().equals(p.getApartmentId()))
-                .filter(p -> p.getStatus() == PaymentStatus.COMPLETED || p.getStatus() == PaymentStatus.PAID)
-                .map(p -> p.getAmount() != null ? p.getAmount() : BigDecimal.ZERO)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-            apartment.setCurrentBalance(opening.add(paid).subtract(globalShare).subtract(directExpenses));
+            ApartmentFinance finance = computeFinance(apartment, apartmentCount, expenses, payments);
+            apartment.setCurrentBalance(finance.balance());
             apartment.setUpdatedAt(LocalDateTime.now());
         }
 
         apartmentRepository.saveAll(apartments);
+    }
+
+    public record ApartmentFinance(BigDecimal allocated, BigDecimal paid, BigDecimal balance) {}
+
+    public ApartmentFinance computeFinance(
+            Apartment apartment,
+            int apartmentCount,
+            List<Expense> expenses,
+            List<Payment> payments) {
+        BigDecimal opening = apartment.getOpeningBalance() != null ? apartment.getOpeningBalance() : BigDecimal.ZERO;
+        BigDecimal globalExpenseTotal = expenses.stream()
+            .filter(e -> e.getApartmentId() == null)
+            .map(e -> e.getAmount() != null ? e.getAmount() : BigDecimal.ZERO)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal globalShare = apartmentCount > 0
+            ? globalExpenseTotal.divide(BigDecimal.valueOf(apartmentCount), 2, RoundingMode.HALF_UP)
+            : BigDecimal.ZERO;
+        BigDecimal directExpenses = expenses.stream()
+            .filter(e -> apartment.getId().equals(e.getApartmentId()))
+            .map(e -> e.getAmount() != null ? e.getAmount() : BigDecimal.ZERO)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal allocated = globalShare.add(directExpenses);
+        BigDecimal paid = payments.stream()
+            .filter(p -> apartment.getId().equals(p.getApartmentId()))
+            .filter(p -> p.getStatus() == PaymentStatus.COMPLETED || p.getStatus() == PaymentStatus.PAID)
+            .map(p -> p.getAmount() != null ? p.getAmount() : BigDecimal.ZERO)
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal balance = opening.add(paid).subtract(allocated);
+        return new ApartmentFinance(allocated, paid, balance);
     }
 }
