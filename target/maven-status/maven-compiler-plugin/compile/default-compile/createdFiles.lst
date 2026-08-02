@@ -12,6 +12,7 @@ com/villamanager/service/ApartmentService.class
 com/villamanager/dto/ExpenseDto$ExpenseDtoBuilder.class
 com/villamanager/dto/ExpenseRequest.class
 com/villamanager/VillaManagerApplication.class
+com/villamanager/util/BrandingExportHelper.class
 com/villamanager/repository/ApartmentRepository.class
 com/villamanager/entity/Vendor.class
 com/villamanager/repository/UserRepository.class

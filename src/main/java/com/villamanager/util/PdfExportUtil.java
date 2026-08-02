@@ -98,15 +98,14 @@ public class PdfExportUtil {
     }
 
     private static void addFooter(Document document, BrandingProperties branding) throws DocumentException {
+        String contact = BrandingExportHelper.contactLine(branding);
+        if (contact.isBlank()) {
+            return;
+        }
         document.add(new Paragraph("\n"));
-        
-        Paragraph footer = new Paragraph();
-        footer.add(new Phrase("Email: " + branding.getSupportEmail() + " | ", getSmallFont()));
-        footer.add(new Phrase("Phone: " + branding.getPhoneNumber() + " | ", getSmallFont()));
-        footer.add(new Phrase("Address: " + branding.getAddress(), getSmallFont()));
+        Paragraph footer = new Paragraph(contact, getSmallFont());
         footer.setAlignment(Element.ALIGN_CENTER);
         footer.setSpacingBefore(20);
-        
         document.add(footer);
     }
 

@@ -83,19 +83,24 @@ public class ExcelExportUtil {
                 c0.setCellValue(branding.getAppName() + " — " + branding.getCompanyName());
                 c0.setCellStyle(titleStyle);
 
-                // Row 1: Location
-                Row r1 = sheet.createRow(rowIndex++);
-                Cell c1 = r1.createCell(textColumn);
-                c1.setCellValue("Location: " + branding.getAddress());
-                c1.setCellStyle(subStyle);
+                // Row 1: Location (only when meaningful)
+                if (BrandingExportHelper.isRealAddress(branding.getAddress())) {
+                    Row r1 = sheet.createRow(rowIndex++);
+                    Cell c1 = r1.createCell(textColumn);
+                    c1.setCellValue("Location: " + branding.getAddress().trim());
+                    c1.setCellStyle(subStyle);
+                }
 
-                // Row 2: Contact
-                Row r2 = sheet.createRow(rowIndex++);
-                Cell c2 = r2.createCell(textColumn);
-                c2.setCellValue("Email: " + branding.getSupportEmail() + "  |  Phone: " + branding.getPhoneNumber());
-                c2.setCellStyle(subStyle);
+                // Row 2: Contact (only non-empty fields)
+                String contact = BrandingExportHelper.contactLine(branding);
+                if (!contact.isBlank()) {
+                    Row r2 = sheet.createRow(rowIndex++);
+                    Cell c2 = r2.createCell(textColumn);
+                    c2.setCellValue(contact);
+                    c2.setCellStyle(subStyle);
+                }
 
-                // Row 3: Generated date
+                // Generated date
                 Row r3 = sheet.createRow(rowIndex++);
                 Cell c3 = r3.createCell(textColumn);
                 c3.setCellValue("Generated: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));

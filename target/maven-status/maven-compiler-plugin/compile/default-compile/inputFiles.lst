@@ -3,6 +3,7 @@
 /Users/mohammed.shaikh/Documents/villa 6 pro/villa-manager-backend/src/main/java/com/villamanager/dto/ExpenseDto.java
 /Users/mohammed.shaikh/Documents/villa 6 pro/villa-manager-backend/src/main/java/com/villamanager/dto/PaymentDto.java
 /Users/mohammed.shaikh/Documents/villa 6 pro/villa-manager-backend/src/main/java/com/villamanager/exception/GlobalExceptionHandler.java
+/Users/mohammed.shaikh/Documents/villa 6 pro/villa-manager-backend/src/main/java/com/villamanager/util/BrandingExportHelper.java
 /Users/mohammed.shaikh/Documents/villa 6 pro/villa-manager-backend/src/main/java/com/villamanager/entity/ApartmentStatus.java
 /Users/mohammed.shaikh/Documents/villa 6 pro/villa-manager-backend/src/main/java/com/villamanager/repository/VillaRepository.java
 /Users/mohammed.shaikh/Documents/villa 6 pro/villa-manager-backend/src/main/java/com/villamanager/entity/PropertyType.java

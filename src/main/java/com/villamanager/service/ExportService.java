@@ -158,7 +158,8 @@ public class ExportService {
     /** Build a readable location string from villa fields */
     private String buildLocationLine(Villa villa) {
         StringBuilder loc = new StringBuilder();
-        if (villa.getPropertyNumber() != null && !villa.getPropertyNumber().isBlank()) {
+        if (villa.getPropertyNumber() != null && !villa.getPropertyNumber().isBlank()
+                && !"-".equals(villa.getPropertyNumber().trim())) {
             loc.append("No. ").append(villa.getPropertyNumber().trim()).append(" ");
         }
         if (villa.getRegion() != null && !villa.getRegion().isBlank()) {
