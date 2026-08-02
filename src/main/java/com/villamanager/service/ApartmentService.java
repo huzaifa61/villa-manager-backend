@@ -163,7 +163,18 @@ public class ApartmentService {
         apartmentRepository.saveAll(apartments);
     }
 
-    public record ApartmentFinance(BigDecimal allocated, BigDecimal paid, BigDecimal balance) {}
+    public record ApartmentFinance(BigDecimal allocated, BigDecimal paid, BigDecimal balance) {
+        /** Allocated expenses for export (same as allocated). */
+        public BigDecimal expense() {
+            return allocated;
+        }
+
+        /** Export balance: paid − expense + opening. */
+        public BigDecimal exportBalance(BigDecimal opening) {
+            BigDecimal openingAmount = opening != null ? opening : BigDecimal.ZERO;
+            return paid.subtract(allocated).add(openingAmount);
+        }
+    }
 
     public ApartmentFinance computeFinance(
             Apartment apartment,

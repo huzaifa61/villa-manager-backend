@@ -51,9 +51,9 @@ class ApartmentExportSupport {
                 dto.getTenantName(),
                 dto.getPhoneNumber(),
                 dto.getStatus(),
-                finance.allocated(),
+                finance.expense(),
                 finance.paid(),
-                finance.balance(),
+                finance.exportBalance(dto.getOpeningBalance()),
                 dto.getApartmentType()
             ));
         }
@@ -63,7 +63,7 @@ class ApartmentExportSupport {
     static List<String> exportHeaders() {
         return List.of(
             "ID", "Apartment", "Owner", "Tenant", "Phone", "Status",
-            "Allocated", "Paid", "Balance", "Type"
+            "Expense", "Paid", "Balance", "Type"
         );
     }
 
@@ -91,9 +91,9 @@ class ApartmentExportSupport {
                 dto.getEmail(),
                 dto.getStatus(),
                 dto.getOpeningBalance(),
-                finance.allocated(),
+                finance.expense(),
                 finance.paid(),
-                finance.balance(),
+                finance.exportBalance(dto.getOpeningBalance()),
                 dto.getApartmentType()
             ));
         }
@@ -103,7 +103,7 @@ class ApartmentExportSupport {
     static List<String> fullCsvHeaders() {
         return List.of(
             "ID", "Apartment", "Owner", "Tenant", "Phone", "Email", "Status",
-            "Opening Balance", "Allocated", "Paid", "Balance", "Type"
+            "Opening Balance", "Expense", "Paid", "Balance", "Type"
         );
     }
 }
