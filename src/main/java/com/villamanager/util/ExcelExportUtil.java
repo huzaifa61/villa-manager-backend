@@ -103,10 +103,8 @@ public class ExcelExportUtil {
                 }
             }
 
-            // Auto-size all columns
-            for (int i = 0; i < headers.size(); i++) {
-                sheet.autoSizeColumn(i);
-            }
+            // Column widths without AWT (autoSizeColumn breaks on headless Linux/Railway)
+            applyColumnWidths(sheet, headers, rows);
 
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             workbook.write(out);
@@ -114,6 +112,24 @@ public class ExcelExportUtil {
         } catch (IOException e) {
             log.error("Error generating Excel", e);
             throw e;
+        }
+    }
+
+    private static void applyColumnWidths(Sheet sheet, List<String> headers, List<List<Object>> rows) {
+        int columnCount = headers.size();
+        int[] maxChars = new int[columnCount];
+        for (int i = 0; i < columnCount; i++) {
+            maxChars[i] = headers.get(i) != null ? headers.get(i).length() : 10;
+        }
+        for (List<Object> rowData : rows) {
+            for (int col = 0; col < columnCount && col < rowData.size(); col++) {
+                String text = rowData.get(col) == null ? "" : String.valueOf(rowData.get(col));
+                maxChars[col] = Math.max(maxChars[col], text.length());
+            }
+        }
+        for (int i = 0; i < columnCount; i++) {
+            int chars = Math.min(60, Math.max(12, maxChars[i] + 2));
+            sheet.setColumnWidth(i, chars * 256);
         }
     }
 

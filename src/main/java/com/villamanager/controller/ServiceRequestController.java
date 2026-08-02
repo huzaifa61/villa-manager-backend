@@ -7,16 +7,23 @@ import com.villamanager.entity.ServiceRequestStatus;
 import com.villamanager.exception.ResourceNotFoundException;
 import com.villamanager.repository.ApartmentRepository;
 import com.villamanager.repository.ServiceRequestRepository;
+import com.villamanager.repository.VendorRepository;
 import com.villamanager.service.AccessControlService;
+import com.villamanager.service.ExportService;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/v1/villas/{villaId}/service-requests")
@@ -31,6 +38,12 @@ public class ServiceRequestController {
 
     @Autowired
     private AccessControlService accessControlService;
+
+    @Autowired
+    private ExportService exportService;
+
+    @Autowired
+    private VendorRepository vendorRepository;
 
     @GetMapping
     public ResponseEntity<ApiResponse<List<ServiceRequest>>> getServiceRequests(@PathVariable Long villaId) {
@@ -91,6 +104,75 @@ public class ServiceRequestController {
                 .orElseThrow(() -> new ResourceNotFoundException("Service request not found"));
         serviceRequestRepository.delete(request);
         return ResponseEntity.ok(ApiResponse.success("Service request deleted successfully", null));
+    }
+
+    @GetMapping(value = "/export", produces = "text/csv")
+    public ResponseEntity<byte[]> exportServiceRequestsCsv(@PathVariable Long villaId) {
+        accessControlService.requireVillaRead(villaId);
+        List<ServiceRequest> requests = serviceRequestRepository.findByVillaId(villaId);
+        List<String> headers = exportService.withVillaColumn(Arrays.asList(
+                "ID", "Apartment", "Description", "Status", "Vendor", "Notes", "Created At"));
+        return exportService.exportToCSV(
+                "service-requests",
+                villaId,
+                "Service Requests",
+                headers,
+                exportService.withVillaColumn(villaId, buildServiceRequestRows(villaId, requests)));
+    }
+
+    @GetMapping(value = "/export-excel", produces = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
+    public ResponseEntity<byte[]> exportServiceRequestsExcel(@PathVariable Long villaId) {
+        accessControlService.requireVillaRead(villaId);
+        List<ServiceRequest> requests = serviceRequestRepository.findByVillaId(villaId);
+        List<String> headers = exportService.withVillaColumn(Arrays.asList(
+                "ID", "Apartment", "Description", "Status", "Vendor", "Notes", "Created At"));
+        return exportService.exportToExcel(
+                "service-requests",
+                villaId,
+                "Service Requests",
+                headers,
+                exportService.withVillaColumn(villaId, buildServiceRequestRows(villaId, requests)));
+    }
+
+    @GetMapping(value = "/export-pdf", produces = MediaType.APPLICATION_PDF_VALUE)
+    public ResponseEntity<byte[]> exportServiceRequestsPdf(@PathVariable Long villaId) {
+        accessControlService.requireVillaRead(villaId);
+        List<ServiceRequest> requests = serviceRequestRepository.findByVillaId(villaId);
+        List<String> headers = exportService.withVillaColumn(Arrays.asList(
+                "ID", "Apartment", "Description", "Status", "Vendor", "Notes", "Created At"));
+        return exportService.exportToPdf(
+                "service-requests",
+                villaId,
+                "Service Requests",
+                headers,
+                exportService.withVillaColumn(villaId, buildServiceRequestRows(villaId, requests)));
+    }
+
+    private List<List<Object>> buildServiceRequestRows(Long villaId, List<ServiceRequest> requests) {
+        Map<Long, String> apartmentNumbers = apartmentRepository.findByVillaId(villaId)
+                .stream()
+                .collect(Collectors.toMap(Apartment::getId, Apartment::getApartmentNumber, (a, b) -> a));
+        Set<Long> vendorIds = requests.stream()
+                .map(ServiceRequest::getVendorId)
+                .filter(id -> id != null)
+                .collect(Collectors.toSet());
+        Map<Long, String> vendorNames = vendorRepository.findAllById(vendorIds)
+                .stream()
+                .collect(Collectors.toMap(com.villamanager.entity.Vendor::getId, com.villamanager.entity.Vendor::getName, (a, b) -> a));
+
+        List<List<Object>> rows = new ArrayList<>();
+        for (ServiceRequest request : requests) {
+            List<Object> row = new ArrayList<>();
+            row.add(request.getId());
+            row.add(apartmentNumbers.getOrDefault(request.getApartmentId(), String.valueOf(request.getApartmentId())));
+            row.add(request.getDescription());
+            row.add(request.getStatus() != null ? request.getStatus().name() : "");
+            row.add(request.getVendorId() != null ? vendorNames.getOrDefault(request.getVendorId(), "") : "");
+            row.add(request.getNotes());
+            row.add(request.getCreatedAt());
+            rows.add(row);
+        }
+        return rows;
     }
 
     private Long resolveApartmentId(Long villaId, Object value) {

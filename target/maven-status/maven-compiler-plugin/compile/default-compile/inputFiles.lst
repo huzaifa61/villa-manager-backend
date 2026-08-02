@@ -6,6 +6,7 @@
 /Users/mohammed.shaikh/Documents/villa 6 pro/villa-manager-backend/src/main/java/com/villamanager/entity/ApartmentStatus.java
 /Users/mohammed.shaikh/Documents/villa 6 pro/villa-manager-backend/src/main/java/com/villamanager/repository/VillaRepository.java
 /Users/mohammed.shaikh/Documents/villa 6 pro/villa-manager-backend/src/main/java/com/villamanager/entity/PropertyType.java
+/Users/mohammed.shaikh/Documents/villa 6 pro/villa-manager-backend/src/main/java/com/villamanager/service/BrandingService.java
 /Users/mohammed.shaikh/Documents/villa 6 pro/villa-manager-backend/src/main/java/com/villamanager/dto/NotificationDto.java
 /Users/mohammed.shaikh/Documents/villa 6 pro/villa-manager-backend/src/main/java/com/villamanager/entity/Notification.java
 /Users/mohammed.shaikh/Documents/villa 6 pro/villa-manager-backend/src/main/java/com/villamanager/entity/Payment.java
@@ -27,15 +28,19 @@
 /Users/mohammed.shaikh/Documents/villa 6 pro/villa-manager-backend/src/main/java/com/villamanager/controller/BrandingController.java
 /Users/mohammed.shaikh/Documents/villa 6 pro/villa-manager-backend/src/main/java/com/villamanager/repository/ApartmentRepository.java
 /Users/mohammed.shaikh/Documents/villa 6 pro/villa-manager-backend/src/main/java/com/villamanager/repository/ExpenseRepository.java
+/Users/mohammed.shaikh/Documents/villa 6 pro/villa-manager-backend/src/main/java/com/villamanager/entity/AppBranding.java
 /Users/mohammed.shaikh/Documents/villa 6 pro/villa-manager-backend/src/main/java/com/villamanager/config/DataInitializer.java
 /Users/mohammed.shaikh/Documents/villa 6 pro/villa-manager-backend/src/main/java/com/villamanager/controller/ApartmentController.java
+/Users/mohammed.shaikh/Documents/villa 6 pro/villa-manager-backend/src/main/java/com/villamanager/util/LogoExportHelper.java
 /Users/mohammed.shaikh/Documents/villa 6 pro/villa-manager-backend/src/main/java/com/villamanager/config/SecurityConfig.java
+/Users/mohammed.shaikh/Documents/villa 6 pro/villa-manager-backend/src/main/java/com/villamanager/repository/AppBrandingRepository.java
 /Users/mohammed.shaikh/Documents/villa 6 pro/villa-manager-backend/src/main/java/com/villamanager/repository/PaymentCategoryRepository.java
 /Users/mohammed.shaikh/Documents/villa 6 pro/villa-manager-backend/src/main/java/com/villamanager/service/CurrentUserService.java
 /Users/mohammed.shaikh/Documents/villa 6 pro/villa-manager-backend/src/main/java/com/villamanager/entity/PaymentStatus.java
 /Users/mohammed.shaikh/Documents/villa 6 pro/villa-manager-backend/src/main/java/com/villamanager/entity/ActivityLog.java
 /Users/mohammed.shaikh/Documents/villa 6 pro/villa-manager-backend/src/main/java/com/villamanager/dto/RegisterRequest.java
 /Users/mohammed.shaikh/Documents/villa 6 pro/villa-manager-backend/src/main/java/com/villamanager/entity/ExpenseCategory.java
+/Users/mohammed.shaikh/Documents/villa 6 pro/villa-manager-backend/src/main/java/com/villamanager/dto/TableExportRequest.java
 /Users/mohammed.shaikh/Documents/villa 6 pro/villa-manager-backend/src/main/java/com/villamanager/dto/LoginRequest.java
 /Users/mohammed.shaikh/Documents/villa 6 pro/villa-manager-backend/src/main/java/com/villamanager/dto/RecurringExpenseTemplateRequest.java
 /Users/mohammed.shaikh/Documents/villa 6 pro/villa-manager-backend/src/main/java/com/villamanager/security/JwtTokenProvider.java
@@ -77,6 +82,7 @@
 /Users/mohammed.shaikh/Documents/villa 6 pro/villa-manager-backend/src/main/java/com/villamanager/exception/ResourceNotFoundException.java
 /Users/mohammed.shaikh/Documents/villa 6 pro/villa-manager-backend/src/main/java/com/villamanager/repository/PaymentRepository.java
 /Users/mohammed.shaikh/Documents/villa 6 pro/villa-manager-backend/src/main/java/com/villamanager/dto/VillaDto.java
+/Users/mohammed.shaikh/Documents/villa 6 pro/villa-manager-backend/src/main/java/com/villamanager/controller/TableExportController.java
 /Users/mohammed.shaikh/Documents/villa 6 pro/villa-manager-backend/src/main/java/com/villamanager/controller/NotificationController.java
 /Users/mohammed.shaikh/Documents/villa 6 pro/villa-manager-backend/src/main/java/com/villamanager/service/NotificationService.java
 /Users/mohammed.shaikh/Documents/villa 6 pro/villa-manager-backend/src/main/java/com/villamanager/entity/PaymentCategory.java

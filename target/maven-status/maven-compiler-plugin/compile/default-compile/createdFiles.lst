@@ -41,6 +41,7 @@ com/villamanager/controller/VillaController.class
 com/villamanager/dto/ApiResponse.class
 com/villamanager/exception/AccessDeniedException.class
 com/villamanager/dto/AcceptInviteRequest.class
+com/villamanager/util/LogoExportHelper.class
 com/villamanager/dto/ApiResponse$ApiResponseBuilder.class
 com/villamanager/service/AuthenticationService.class
 com/villamanager/exception/InvalidOperationException.class
@@ -49,16 +50,20 @@ com/villamanager/repository/RecurringExpenseTemplateRepository.class
 com/villamanager/entity/Apartment.class
 com/villamanager/controller/AuthController.class
 com/villamanager/dto/UserDto.class
+com/villamanager/service/BrandingService.class
 com/villamanager/dto/RecurringExpenseTemplateRequest.class
 com/villamanager/dto/PaymentRequest.class
 com/villamanager/entity/Expense.class
 com/villamanager/entity/Notification.class
 com/villamanager/dto/AuthResponse.class
 com/villamanager/service/VendorService.class
+com/villamanager/controller/TableExportController.class
 com/villamanager/entity/Payment.class
 com/villamanager/dto/PaymentDto.class
+com/villamanager/repository/AppBrandingRepository.class
 com/villamanager/entity/ServiceRequest.class
 com/villamanager/dto/ExpenseDto.class
+com/villamanager/entity/AppBranding.class
 com/villamanager/controller/ApartmentController.class
 com/villamanager/entity/ExpenseCategory.class
 com/villamanager/entity/Villa.class
@@ -75,5 +80,6 @@ com/villamanager/security/JwtAuthenticationFilter.class
 com/villamanager/service/RecurringExpenseService.class
 com/villamanager/service/AccessControlService.class
 com/villamanager/exception/AuthenticationFailedException.class
+com/villamanager/dto/TableExportRequest.class
 com/villamanager/controller/NotificationController.class
 com/villamanager/entity/ServiceRequestStatus.class
