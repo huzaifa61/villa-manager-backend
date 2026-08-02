@@ -8,7 +8,6 @@ import com.villamanager.config.BrandingProperties;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -23,39 +22,33 @@ public class PdfExportUtil {
             Document document = new Document(PageSize.A4.rotate());
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             PdfWriter.getInstance(document, outputStream);
-            
+
             document.open();
-            
-            // Add branding header
+
             addHeader(document, title, branding);
-            
-            // Add table
+
             PdfPTable table = new PdfPTable(headers.size());
             table.setWidthPercentage(100);
-            
-            // Add headers
+
             for (String header : headers) {
-                PdfPCell cell = new PdfPCell(new Phrase(header, getBoldFont()));
+                PdfPCell cell = new PdfPCell(new Phrase(header, PdfFontProvider.boldFont()));
                 cell.setBackgroundColor(BaseColor.LIGHT_GRAY);
                 cell.setPadding(8);
                 cell.setHorizontalAlignment(Element.ALIGN_CENTER);
                 table.addCell(cell);
             }
-            
-            // Add data rows
+
             for (List<Object> row : rows) {
                 for (Object value : row) {
-                    PdfPCell cell = new PdfPCell(new Phrase(formatValue(value), getRegularFont()));
+                    PdfPCell cell = new PdfPCell(new Phrase(formatValue(value), PdfFontProvider.regularFont()));
                     cell.setPadding(5);
                     table.addCell(cell);
                 }
             }
-            
+
             document.add(table);
-            
-            // Add footer
             addFooter(document, branding);
-            
+
             document.close();
             return outputStream.toByteArray();
         } catch (Exception e) {
@@ -79,19 +72,20 @@ public class PdfExportUtil {
             }
         }
 
-        Paragraph companyName = new Paragraph("Villa: " + branding.getCompanyName(), getBoldFont());
-        companyName.setAlignment(Element.ALIGN_CENTER);
-        document.add(companyName);
-        
-        // Title
-        Paragraph titlePara = new Paragraph(title, getTitleFont());
+        String villaName = branding.getCompanyName();
+        if (BrandingExportHelper.hasText(villaName)) {
+            Paragraph companyName = new Paragraph("Villa: " + villaName.trim(), PdfFontProvider.boldFont());
+            companyName.setAlignment(Element.ALIGN_CENTER);
+            document.add(companyName);
+        }
+
+        Paragraph titlePara = new Paragraph(title, PdfFontProvider.titleFont());
         titlePara.setAlignment(Element.ALIGN_CENTER);
         titlePara.setSpacingBefore(10);
         titlePara.setSpacingAfter(10);
         document.add(titlePara);
-        
-        // Generated date
-        Paragraph datePara = new Paragraph("Generated: " + new Date(), getSmallFont());
+
+        Paragraph datePara = new Paragraph("Generated: " + new Date(), PdfFontProvider.smallFont());
         datePara.setAlignment(Element.ALIGN_RIGHT);
         datePara.setSpacingAfter(20);
         document.add(datePara);
@@ -103,26 +97,10 @@ public class PdfExportUtil {
             return;
         }
         document.add(new Paragraph("\n"));
-        Paragraph footer = new Paragraph(contact, getSmallFont());
+        Paragraph footer = new Paragraph(contact, PdfFontProvider.smallFont());
         footer.setAlignment(Element.ALIGN_CENTER);
         footer.setSpacingBefore(20);
         document.add(footer);
-    }
-
-    private static Font getTitleFont() {
-        return new Font(Font.FontFamily.HELVETICA, 18, Font.BOLD);
-    }
-
-    private static Font getBoldFont() {
-        return new Font(Font.FontFamily.HELVETICA, 11, Font.BOLD);
-    }
-
-    private static Font getRegularFont() {
-        return new Font(Font.FontFamily.HELVETICA, 10);
-    }
-
-    private static Font getSmallFont() {
-        return new Font(Font.FontFamily.HELVETICA, 8);
     }
 
     private static String formatValue(Object value) {

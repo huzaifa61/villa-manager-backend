@@ -15,6 +15,7 @@ com/villamanager/VillaManagerApplication.class
 com/villamanager/util/BrandingExportHelper.class
 com/villamanager/repository/ApartmentRepository.class
 com/villamanager/entity/Vendor.class
+com/villamanager/util/PdfFontProvider.class
 com/villamanager/repository/UserRepository.class
 com/villamanager/repository/VillaRepository.class
 com/villamanager/entity/ApartmentStatus.class
