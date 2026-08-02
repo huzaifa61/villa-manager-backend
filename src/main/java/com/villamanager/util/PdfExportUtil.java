@@ -11,6 +11,7 @@ import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.List;
 
@@ -31,18 +32,12 @@ public class PdfExportUtil {
             table.setWidthPercentage(100);
 
             for (String header : headers) {
-                PdfPCell cell = new PdfPCell(PdfFontProvider.boldPhrase(header));
-                cell.setBackgroundColor(BaseColor.LIGHT_GRAY);
-                cell.setPadding(8);
-                cell.setHorizontalAlignment(Element.ALIGN_CENTER);
-                table.addCell(cell);
+                table.addCell(textCell(header, true));
             }
 
             for (List<Object> row : rows) {
                 for (Object value : row) {
-                    PdfPCell cell = new PdfPCell(PdfFontProvider.regularPhrase(formatValue(value)));
-                    cell.setPadding(5);
-                    table.addCell(cell);
+                    table.addCell(textCell(formatValue(value), false));
                 }
             }
 
@@ -55,6 +50,18 @@ public class PdfExportUtil {
             log.error("Error generating PDF", e);
             throw e;
         }
+    }
+
+    private static PdfPCell textCell(String text, boolean bold) {
+        Phrase phrase = bold ? PdfFontProvider.boldPhrase(text) : PdfFontProvider.regularPhrase(text);
+        PdfPCell cell = new PdfPCell(phrase);
+        cell.setPadding(bold ? 8 : 5);
+        cell.setBackgroundColor(bold ? BaseColor.LIGHT_GRAY : BaseColor.WHITE);
+        cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+        if (PdfFontProvider.containsArabic(text)) {
+            cell.setRunDirection(PdfWriter.RUN_DIRECTION_LTR);
+        }
+        return cell;
     }
 
     private static void addHeader(Document document, String title, BrandingProperties branding) throws DocumentException {
@@ -72,22 +79,32 @@ public class PdfExportUtil {
             }
         }
 
-        String villaName = branding.getCompanyName();
-        if (BrandingExportHelper.hasText(villaName)) {
-            Paragraph companyName = new Paragraph(PdfFontProvider.boldPhrase("Villa: " + villaName.trim()));
-            companyName.setAlignment(Element.ALIGN_CENTER);
-            document.add(companyName);
+        if (BrandingExportHelper.hasText(branding.getAppName())) {
+            Paragraph appName = new Paragraph(PdfFontProvider.titlePhrase(branding.getAppName().trim()));
+            appName.setAlignment(Element.ALIGN_CENTER);
+            document.add(appName);
         }
 
-        Paragraph titlePara = new Paragraph(PdfFontProvider.titlePhrase(title));
-        titlePara.setAlignment(Element.ALIGN_CENTER);
-        titlePara.setSpacingBefore(10);
-        titlePara.setSpacingAfter(10);
-        document.add(titlePara);
+        String villaName = branding.getCompanyName();
+        if (BrandingExportHelper.hasText(villaName)) {
+            Paragraph villaLine = new Paragraph(PdfFontProvider.boldPhrase("Villa: " + villaName.trim()));
+            villaLine.setAlignment(Element.ALIGN_CENTER);
+            villaLine.setSpacingBefore(4);
+            document.add(villaLine);
+        }
 
-        Paragraph datePara = new Paragraph(PdfFontProvider.smallPhrase("Generated: " + new Date()));
+        if (BrandingExportHelper.hasText(title)) {
+            Paragraph reportLine = new Paragraph(PdfFontProvider.boldPhrase("Report: " + title.trim()));
+            reportLine.setAlignment(Element.ALIGN_CENTER);
+            reportLine.setSpacingBefore(6);
+            document.add(reportLine);
+        }
+
+        String generated = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+        Paragraph datePara = new Paragraph(PdfFontProvider.smallPhrase("Generated: " + generated));
         datePara.setAlignment(Element.ALIGN_RIGHT);
-        datePara.setSpacingAfter(20);
+        datePara.setSpacingBefore(8);
+        datePara.setSpacingAfter(16);
         document.add(datePara);
     }
 

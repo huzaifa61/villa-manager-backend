@@ -1,17 +1,19 @@
 package com.villamanager.util;
 
+import com.itextpdf.text.BaseColor;
+import com.itextpdf.text.Chunk;
 import com.itextpdf.text.Font;
 import com.itextpdf.text.Phrase;
 import com.itextpdf.text.pdf.BaseFont;
-import com.itextpdf.text.pdf.FontSelector;
+import com.itextpdf.text.pdf.languages.ArabicLigaturizer;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * Latin + Arabic fonts for PDF export. Latin headings use Noto Sans;
- * Arabic villa names use Noto Sans Arabic via {@link FontSelector}.
+ * Latin + Arabic fonts for PDF export.
+ * Builds phrases per script segment instead of FontSelector (unreliable with embedded TTF bytes).
  */
 @Slf4j
 public final class PdfFontProvider {
@@ -44,15 +46,67 @@ public final class PdfFontProvider {
         return phrase(text, 8, false);
     }
 
-    public static Phrase phrase(String text, float size, boolean bold) {
-        FontSelector selector = new FontSelector();
-        selector.addFont(font(bold ? latinBoldBase() : latinRegularBase(), size));
-        selector.addFont(font(bold ? arabicBoldBase() : arabicRegularBase(), size));
-        return selector.process(text == null ? "" : text);
+    public static boolean containsArabic(String text) {
+        if (text == null || text.isEmpty()) {
+            return false;
+        }
+        for (int i = 0; i < text.length(); i++) {
+            if (isArabicChar(text.charAt(i))) {
+                return true;
+            }
+        }
+        return false;
     }
 
-    private static Font font(BaseFont base, float size) {
-        return new Font(base, size);
+    public static Phrase phrase(String text, float size, boolean bold) {
+        if (text == null) {
+            text = "";
+        }
+        Phrase phrase = new Phrase();
+        BaseFont latinBase = bold ? latinBoldBase() : latinRegularBase();
+        BaseFont arabicBase = bold ? arabicBoldBase() : arabicRegularBase();
+
+        int index = 0;
+        while (index < text.length()) {
+            char current = text.charAt(index);
+            boolean arabic = isArabicChar(current);
+            int end = index + 1;
+            while (end < text.length() && isArabicChar(text.charAt(end)) == arabic) {
+                end++;
+            }
+            String segment = text.substring(index, end);
+            if (arabic) {
+                segment = shapeArabic(segment);
+            }
+            Font font = styledFont(arabic ? arabicBase : latinBase, size);
+            phrase.add(new Chunk(segment, font));
+            index = end;
+        }
+        return phrase;
+    }
+
+    private static Font styledFont(BaseFont base, float size) {
+        Font font = new Font(base, size);
+        font.setColor(BaseColor.BLACK);
+        return font;
+    }
+
+    private static boolean isArabicChar(char character) {
+        Character.UnicodeBlock block = Character.UnicodeBlock.of(character);
+        return block == Character.UnicodeBlock.ARABIC
+                || block == Character.UnicodeBlock.ARABIC_PRESENTATION_FORMS_A
+                || block == Character.UnicodeBlock.ARABIC_PRESENTATION_FORMS_B
+                || block == Character.UnicodeBlock.ARABIC_SUPPLEMENT;
+    }
+
+    private static String shapeArabic(String text) {
+        try {
+            ArabicLigaturizer ligaturizer = new ArabicLigaturizer();
+            return ligaturizer.process(text);
+        } catch (Exception e) {
+            log.warn("Arabic shaping failed, using raw text", e);
+            return text;
+        }
     }
 
     private static BaseFont latinRegularBase() {
