@@ -46,6 +46,51 @@ public final class PdfFontProvider {
         return phrase(text, 8, false);
     }
 
+    private static final char RTL_EMBED = '\u202B';
+    private static final char POP_DIRECTION = '\u202C';
+    private static final char RIGHT_TO_LEFT_MARK = '\u200F';
+
+    public static Phrase arabicPhrase(String text, float size, boolean bold) {
+        Phrase phrase = new Phrase();
+        if (text == null || text.isBlank()) {
+            return phrase;
+        }
+        Font arabic = styledFont(bold ? arabicBoldBase() : arabicRegularBase(), size);
+        phrase.add(new Chunk(shapeArabic(text.trim()), arabic));
+        return phrase;
+    }
+
+    /** Label on the left, Arabic villa name on the right in one centered row. */
+    public static Phrase villaNameLinePhrase(String villaName, float size, boolean bold) {
+        Phrase phrase = new Phrase();
+        Font latin = styledFont(bold ? latinBoldBase() : latinRegularBase(), size);
+        Font arabic = styledFont(bold ? arabicBoldBase() : arabicRegularBase(), size);
+        phrase.add(new Chunk("Villa: ", latin));
+        if (villaName != null && !villaName.isBlank()) {
+            String shaped = shapeArabic(villaName.trim());
+            phrase.add(new Chunk(String.valueOf(RIGHT_TO_LEFT_MARK), latin));
+            phrase.add(new Chunk(String.valueOf(RTL_EMBED) + shaped + POP_DIRECTION, arabic));
+        }
+        return phrase;
+    }
+
+    public static boolean isMostlyArabic(String text) {
+        if (text == null || text.isEmpty()) {
+            return false;
+        }
+        int arabicCount = 0;
+        int latinCount = 0;
+        for (int i = 0; i < text.length(); i++) {
+            char character = text.charAt(i);
+            if (isArabicChar(character)) {
+                arabicCount++;
+            } else if (Character.isLetter(character)) {
+                latinCount++;
+            }
+        }
+        return arabicCount > 0 && arabicCount >= latinCount;
+    }
+
     public static boolean containsArabic(String text) {
         if (text == null || text.isEmpty()) {
             return false;

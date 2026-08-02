@@ -53,13 +53,18 @@ public class PdfExportUtil {
     }
 
     private static PdfPCell textCell(String text, boolean bold) {
-        Phrase phrase = bold ? PdfFontProvider.boldPhrase(text) : PdfFontProvider.regularPhrase(text);
+        float size = bold ? 11f : 10f;
+        Phrase phrase = PdfFontProvider.isMostlyArabic(text)
+                ? PdfFontProvider.arabicPhrase(text, size, bold)
+                : (bold ? PdfFontProvider.boldPhrase(text) : PdfFontProvider.regularPhrase(text));
         PdfPCell cell = new PdfPCell(phrase);
         cell.setPadding(bold ? 8 : 5);
         cell.setBackgroundColor(bold ? BaseColor.LIGHT_GRAY : BaseColor.WHITE);
-        cell.setHorizontalAlignment(Element.ALIGN_CENTER);
-        if (PdfFontProvider.containsArabic(text)) {
-            cell.setRunDirection(PdfWriter.RUN_DIRECTION_LTR);
+        if (PdfFontProvider.isMostlyArabic(text)) {
+            cell.setRunDirection(PdfWriter.RUN_DIRECTION_RTL);
+            cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+        } else {
+            cell.setHorizontalAlignment(Element.ALIGN_CENTER);
         }
         return cell;
     }
@@ -87,10 +92,20 @@ public class PdfExportUtil {
 
         String villaName = branding.getCompanyName();
         if (BrandingExportHelper.hasText(villaName)) {
-            Paragraph villaLine = new Paragraph(PdfFontProvider.boldPhrase("Villa: " + villaName.trim()));
-            villaLine.setAlignment(Element.ALIGN_CENTER);
-            villaLine.setSpacingBefore(4);
-            document.add(villaLine);
+            String trimmedName = villaName.trim();
+            if (PdfFontProvider.isMostlyArabic(trimmedName)) {
+                Paragraph villaLabel = new Paragraph(PdfFontProvider.boldPhrase("Villa"));
+                villaLabel.setAlignment(Element.ALIGN_CENTER);
+                villaLabel.setSpacingBefore(4);
+                document.add(villaLabel);
+
+                addCenteredRtlBlock(document, PdfFontProvider.arabicPhrase(trimmedName, 13, true), 2);
+            } else {
+                Paragraph villaLine = new Paragraph(PdfFontProvider.villaNameLinePhrase(trimmedName, 11, true));
+                villaLine.setAlignment(Element.ALIGN_CENTER);
+                villaLine.setSpacingBefore(4);
+                document.add(villaLine);
+            }
         }
 
         if (BrandingExportHelper.hasText(title)) {
@@ -106,6 +121,20 @@ public class PdfExportUtil {
         datePara.setSpacingBefore(8);
         datePara.setSpacingAfter(16);
         document.add(datePara);
+    }
+
+    private static void addCenteredRtlBlock(Document document, Phrase phrase, float paddingTop) throws DocumentException {
+        PdfPTable wrapper = new PdfPTable(1);
+        wrapper.setWidthPercentage(100);
+        wrapper.setSpacingBefore(paddingTop);
+        PdfPCell cell = new PdfPCell(phrase);
+        cell.setBorder(Rectangle.NO_BORDER);
+        cell.setRunDirection(PdfWriter.RUN_DIRECTION_RTL);
+        cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+        cell.setPaddingTop(2);
+        cell.setPaddingBottom(2);
+        wrapper.addCell(cell);
+        document.add(wrapper);
     }
 
     private static void addFooter(Document document, BrandingProperties branding) throws DocumentException {
