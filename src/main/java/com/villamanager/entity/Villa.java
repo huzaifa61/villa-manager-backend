@@ -1,5 +1,6 @@
 package com.villamanager.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -35,6 +36,16 @@ public class Villa {
     private String location;
 
     private String description;
+
+    @JsonIgnore
+    @Lob
+    @Basic(fetch = FetchType.LAZY)
+    @Column(name = "logo_data")
+    private byte[] logoData;
+
+    @JsonIgnore
+    @Column(name = "logo_content_type", length = 100)
+    private String logoContentType;
 
     private Integer totalApartments = 0;
 

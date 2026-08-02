@@ -65,7 +65,18 @@ public class PdfExportUtil {
     }
 
     private static void addHeader(Document document, String title, BrandingProperties branding) throws DocumentException {
-        // Company name and logo placeholder
+        if (LogoExportHelper.hasLogo(branding.getLogoData())) {
+            try {
+                Image logo = Image.getInstance(branding.getLogoData());
+                logo.scaleToFit(110, 70);
+                logo.setAlignment(Element.ALIGN_CENTER);
+                document.add(logo);
+                document.add(Chunk.NEWLINE);
+            } catch (Exception e) {
+                log.warn("Could not embed logo in PDF export", e);
+            }
+        }
+
         Paragraph companyName = new Paragraph("Villa: " + branding.getCompanyName(), getBoldFont());
         companyName.setAlignment(Element.ALIGN_CENTER);
         document.add(companyName);

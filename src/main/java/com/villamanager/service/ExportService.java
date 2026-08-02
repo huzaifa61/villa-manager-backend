@@ -4,6 +4,7 @@ import com.villamanager.config.BrandingProperties;
 import com.villamanager.config.ExportProperties;
 import com.villamanager.entity.Villa;
 import com.villamanager.repository.VillaRepository;
+import com.villamanager.service.BrandingService;
 import com.villamanager.util.CsvExportUtil;
 import com.villamanager.util.ExcelExportUtil;
 import com.villamanager.util.PdfExportUtil;
@@ -32,6 +33,7 @@ public class ExportService {
     private final BrandingProperties brandingProperties;
     private final ExportProperties exportProperties;
     private final VillaRepository villaRepository;
+    private final BrandingService brandingService;
 
     // ── CSV ──────────────────────────────────────────────────────────────────
 
@@ -137,6 +139,12 @@ public class ExportService {
         eff.setLogoUrl(brandingProperties.getLogoUrl());
         eff.setSupportEmail(brandingProperties.getSupportEmail());
         eff.setPhoneNumber(brandingProperties.getPhoneNumber());
+
+        byte[] logoData = brandingService.resolveLogoData(villa);
+        if (logoData != null && logoData.length > 0) {
+            eff.setLogoData(logoData);
+            eff.setLogoContentType(brandingService.resolveLogoContentType(villa));
+        }
 
         // Override company name and address with villa-specific values
         eff.setCompanyName(villa.getName()); // e.g. "Palm Villa A"

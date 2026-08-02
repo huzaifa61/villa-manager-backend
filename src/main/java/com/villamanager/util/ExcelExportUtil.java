@@ -27,6 +27,24 @@ public class ExcelExportUtil {
 
             // Branding header block
             if (branding != null) {
+                int textColumn = 0;
+                if (LogoExportHelper.hasLogo(branding.getLogoData())) {
+                    try {
+                        int pictureType = LogoExportHelper.workbookPictureType(workbook, branding.getLogoContentType());
+                        int pictureIdx = workbook.addPicture(branding.getLogoData(), pictureType);
+                        Drawing<?> drawing = sheet.createDrawingPatriarch();
+                        ClientAnchor anchor = workbook.getCreationHelper().createClientAnchor();
+                        anchor.setCol1(0);
+                        anchor.setRow1(rowIndex);
+                        anchor.setCol2(2);
+                        anchor.setRow2(rowIndex + 4);
+                        drawing.createPicture(anchor, pictureIdx);
+                        textColumn = 3;
+                    } catch (Exception e) {
+                        log.warn("Could not embed logo in Excel export", e);
+                    }
+                }
+
                 CellStyle titleStyle = workbook.createCellStyle();
                 Font titleFont = workbook.createFont();
                 titleFont.setBold(true);
@@ -40,25 +58,25 @@ public class ExcelExportUtil {
 
                 // Row 0: App name — Villa name
                 Row r0 = sheet.createRow(rowIndex++);
-                Cell c0 = r0.createCell(0);
+                Cell c0 = r0.createCell(textColumn);
                 c0.setCellValue(branding.getAppName() + " — " + branding.getCompanyName());
                 c0.setCellStyle(titleStyle);
 
                 // Row 1: Location
                 Row r1 = sheet.createRow(rowIndex++);
-                Cell c1 = r1.createCell(0);
+                Cell c1 = r1.createCell(textColumn);
                 c1.setCellValue("Location: " + branding.getAddress());
                 c1.setCellStyle(subStyle);
 
                 // Row 2: Contact
                 Row r2 = sheet.createRow(rowIndex++);
-                Cell c2 = r2.createCell(0);
+                Cell c2 = r2.createCell(textColumn);
                 c2.setCellValue("Email: " + branding.getSupportEmail() + "  |  Phone: " + branding.getPhoneNumber());
                 c2.setCellStyle(subStyle);
 
                 // Row 3: Generated date
                 Row r3 = sheet.createRow(rowIndex++);
-                Cell c3 = r3.createCell(0);
+                Cell c3 = r3.createCell(textColumn);
                 c3.setCellValue("Generated: " + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")));
                 c3.setCellStyle(subStyle);
 

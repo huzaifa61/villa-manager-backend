@@ -15,4 +15,8 @@ public class BrandingProperties {
     private String supportEmail;
     private String phoneNumber;
     private String address;
+
+    /** Resolved logo bytes for export rendering (not loaded from YAML). */
+    private byte[] logoData;
+    private String logoContentType;
 }
