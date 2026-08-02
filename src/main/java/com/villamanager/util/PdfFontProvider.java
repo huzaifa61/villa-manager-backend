@@ -1,59 +1,86 @@
 package com.villamanager.util;
 
 import com.itextpdf.text.Font;
+import com.itextpdf.text.Phrase;
 import com.itextpdf.text.pdf.BaseFont;
+import com.itextpdf.text.pdf.FontSelector;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.IOException;
 import java.io.InputStream;
 
 /**
- * Unicode fonts for PDF export (Arabic, Latin, and common symbols).
- * Helvetica cannot render Arabic script and shows blank text.
+ * Latin + Arabic fonts for PDF export. Latin headings use Noto Sans;
+ * Arabic villa names use Noto Sans Arabic via {@link FontSelector}.
  */
 @Slf4j
 public final class PdfFontProvider {
 
-    private static final String REGULAR_PATH = "fonts/NotoSansArabic-Regular.ttf";
-    private static final String BOLD_PATH = "fonts/NotoSansArabic-Bold.ttf";
+    private static final String LATIN_REGULAR_PATH = "fonts/NotoSans-Regular.ttf";
+    private static final String LATIN_BOLD_PATH = "fonts/NotoSans-Bold.ttf";
+    private static final String ARABIC_REGULAR_PATH = "fonts/NotoSansArabic-Regular.ttf";
+    private static final String ARABIC_BOLD_PATH = "fonts/NotoSansArabic-Bold.ttf";
 
-    private static volatile BaseFont regularBase;
-    private static volatile BaseFont boldBase;
+    private static volatile BaseFont latinRegularBase;
+    private static volatile BaseFont latinBoldBase;
+    private static volatile BaseFont arabicRegularBase;
+    private static volatile BaseFont arabicBoldBase;
 
     private PdfFontProvider() {}
 
-    public static Font titleFont() {
-        return sized(boldBase(), 18);
+    public static Phrase titlePhrase(String text) {
+        return phrase(text, 18, true);
     }
 
-    public static Font boldFont() {
-        return sized(boldBase(), 11);
+    public static Phrase boldPhrase(String text) {
+        return phrase(text, 11, true);
     }
 
-    public static Font regularFont() {
-        return sized(regularBase(), 10);
+    public static Phrase regularPhrase(String text) {
+        return phrase(text, 10, false);
     }
 
-    public static Font smallFont() {
-        return sized(regularBase(), 8);
+    public static Phrase smallPhrase(String text) {
+        return phrase(text, 8, false);
     }
 
-    private static Font sized(BaseFont base, float size) {
+    public static Phrase phrase(String text, float size, boolean bold) {
+        FontSelector selector = new FontSelector();
+        selector.addFont(font(bold ? latinBoldBase() : latinRegularBase(), size));
+        selector.addFont(font(bold ? arabicBoldBase() : arabicRegularBase(), size));
+        return selector.process(text == null ? "" : text);
+    }
+
+    private static Font font(BaseFont base, float size) {
         return new Font(base, size);
     }
 
-    private static BaseFont regularBase() {
-        if (regularBase == null) {
-            regularBase = loadBaseFont(REGULAR_PATH);
+    private static BaseFont latinRegularBase() {
+        if (latinRegularBase == null) {
+            latinRegularBase = loadBaseFont(LATIN_REGULAR_PATH);
         }
-        return regularBase;
+        return latinRegularBase;
     }
 
-    private static BaseFont boldBase() {
-        if (boldBase == null) {
-            boldBase = loadBaseFont(BOLD_PATH);
+    private static BaseFont latinBoldBase() {
+        if (latinBoldBase == null) {
+            latinBoldBase = loadBaseFont(LATIN_BOLD_PATH);
         }
-        return boldBase;
+        return latinBoldBase;
+    }
+
+    private static BaseFont arabicRegularBase() {
+        if (arabicRegularBase == null) {
+            arabicRegularBase = loadBaseFont(ARABIC_REGULAR_PATH);
+        }
+        return arabicRegularBase;
+    }
+
+    private static BaseFont arabicBoldBase() {
+        if (arabicBoldBase == null) {
+            arabicBoldBase = loadBaseFont(ARABIC_BOLD_PATH);
+        }
+        return arabicBoldBase;
     }
 
     private static BaseFont loadBaseFont(String classpathPath) {

@@ -31,7 +31,7 @@ public class PdfExportUtil {
             table.setWidthPercentage(100);
 
             for (String header : headers) {
-                PdfPCell cell = new PdfPCell(new Phrase(header, PdfFontProvider.boldFont()));
+                PdfPCell cell = new PdfPCell(PdfFontProvider.boldPhrase(header));
                 cell.setBackgroundColor(BaseColor.LIGHT_GRAY);
                 cell.setPadding(8);
                 cell.setHorizontalAlignment(Element.ALIGN_CENTER);
@@ -40,7 +40,7 @@ public class PdfExportUtil {
 
             for (List<Object> row : rows) {
                 for (Object value : row) {
-                    PdfPCell cell = new PdfPCell(new Phrase(formatValue(value), PdfFontProvider.regularFont()));
+                    PdfPCell cell = new PdfPCell(PdfFontProvider.regularPhrase(formatValue(value)));
                     cell.setPadding(5);
                     table.addCell(cell);
                 }
@@ -74,18 +74,18 @@ public class PdfExportUtil {
 
         String villaName = branding.getCompanyName();
         if (BrandingExportHelper.hasText(villaName)) {
-            Paragraph companyName = new Paragraph("Villa: " + villaName.trim(), PdfFontProvider.boldFont());
+            Paragraph companyName = new Paragraph(PdfFontProvider.boldPhrase("Villa: " + villaName.trim()));
             companyName.setAlignment(Element.ALIGN_CENTER);
             document.add(companyName);
         }
 
-        Paragraph titlePara = new Paragraph(title, PdfFontProvider.titleFont());
+        Paragraph titlePara = new Paragraph(PdfFontProvider.titlePhrase(title));
         titlePara.setAlignment(Element.ALIGN_CENTER);
         titlePara.setSpacingBefore(10);
         titlePara.setSpacingAfter(10);
         document.add(titlePara);
 
-        Paragraph datePara = new Paragraph("Generated: " + new Date(), PdfFontProvider.smallFont());
+        Paragraph datePara = new Paragraph(PdfFontProvider.smallPhrase("Generated: " + new Date()));
         datePara.setAlignment(Element.ALIGN_RIGHT);
         datePara.setSpacingAfter(20);
         document.add(datePara);
@@ -97,7 +97,7 @@ public class PdfExportUtil {
             return;
         }
         document.add(new Paragraph("\n"));
-        Paragraph footer = new Paragraph(contact, PdfFontProvider.smallFont());
+        Paragraph footer = new Paragraph(PdfFontProvider.smallPhrase(contact));
         footer.setAlignment(Element.ALIGN_CENTER);
         footer.setSpacingBefore(20);
         document.add(footer);
