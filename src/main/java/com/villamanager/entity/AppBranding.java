@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.LocalDateTime;
 
@@ -19,9 +21,9 @@ public class AppBranding {
     @Id
     private Long id = SINGLETON_ID;
 
-    @Lob
     @Basic(fetch = FetchType.LAZY)
-    @Column(name = "logo_data")
+    @JdbcTypeCode(SqlTypes.VARBINARY)
+    @Column(name = "logo_data", columnDefinition = "bytea")
     private byte[] logoData;
 
     @Column(name = "logo_content_type", length = 100)

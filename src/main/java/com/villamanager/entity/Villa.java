@@ -5,6 +5,9 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
+
 import java.time.LocalDateTime;
 
 @Entity
@@ -38,9 +41,9 @@ public class Villa {
     private String description;
 
     @JsonIgnore
-    @Lob
     @Basic(fetch = FetchType.LAZY)
-    @Column(name = "logo_data")
+    @JdbcTypeCode(SqlTypes.VARBINARY)
+    @Column(name = "logo_data", columnDefinition = "bytea")
     private byte[] logoData;
 
     @JsonIgnore
