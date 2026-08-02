@@ -5,7 +5,6 @@ import com.itextpdf.text.Chunk;
 import com.itextpdf.text.Font;
 import com.itextpdf.text.Phrase;
 import com.itextpdf.text.pdf.BaseFont;
-import com.itextpdf.text.pdf.languages.ArabicLigaturizer;
 import lombok.extern.slf4j.Slf4j;
 
 import java.io.File;
@@ -15,7 +14,7 @@ import java.nio.file.Files;
 
 /**
  * Latin + Arabic fonts for PDF export.
- * Paragraphs use logical-order Arabic; RTL table cells use ligaturized visual-order Arabic.
+ * Paragraphs and Arabic table cells use logical-order Unicode with Noto Sans Arabic.
  */
 @Slf4j
 public final class PdfFontProvider {
@@ -64,22 +63,6 @@ public final class PdfFontProvider {
         Font arabic = styledFont(bold ? arabicBoldBase() : arabicRegularBase(), size);
         phrase.add(new Chunk(text.trim(), arabic));
         return phrase;
-    }
-
-    /**
-     * Arabic text inside {@link com.itextpdf.text.pdf.PdfPCell} with RTL run direction.
-     * iText expects visual-order Arabic in RTL cells; ligaturizer converts logical Unicode.
-     */
-    public static Phrase arabicCellPhrase(String text, float size, boolean bold) {
-        if (text == null || text.isBlank()) {
-            return new Phrase();
-        }
-        return arabicPhrase(toVisualArabic(text.trim()), size, bold);
-    }
-
-    private static String toVisualArabic(String logicalArabic) {
-        ArabicLigaturizer ligaturizer = new ArabicLigaturizer();
-        return ligaturizer.process(logicalArabic);
     }
 
     public static Phrase latinPhrase(String text, float size, boolean bold) {

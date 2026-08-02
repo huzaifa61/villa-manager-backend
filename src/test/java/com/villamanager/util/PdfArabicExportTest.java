@@ -13,17 +13,27 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class PdfArabicExportTest {
 
   private static final String EXPECTED = "الريس";
+  private static final String EXPECTED_WITH_WORD = "الريس جرب";
 
   @Test
   void arabicVillaNameAppearsInPdf() throws Exception {
+    assertPdfContainsArabic(EXPECTED);
+  }
+
+  @Test
+  void arabicVillaNameWithExtraWordAppearsInPdf() throws Exception {
+    assertPdfContainsArabic(EXPECTED_WITH_WORD);
+  }
+
+  private void assertPdfContainsArabic(String villaName) throws Exception {
     BrandingProperties branding = new BrandingProperties();
     branding.setAppName("Villa Manager Pro");
-    branding.setCompanyName(EXPECTED);
+    branding.setCompanyName(villaName);
 
     List<String> headers = Arrays.asList("Villa", "ID", "Apartment");
     List<List<Object>> rows = List.of(
-        Arrays.asList(EXPECTED, 2, "3"),
-        Arrays.asList(EXPECTED, 3, "2")
+        Arrays.asList(villaName, 2, "3"),
+        Arrays.asList(villaName, 3, "2")
     );
 
     byte[] pdf = PdfExportUtil.generatePdf("Apartments Report", headers, rows, branding);
@@ -32,7 +42,14 @@ class PdfArabicExportTest {
     reader.close();
 
     assertTrue(
-        pageText.contains(EXPECTED),
+        pageText.contains(villaName),
         "Extracted PDF text should include villa name. Got: " + pageText);
+    assertTrue(
+        !pageText.contains(reverseArabicWord("الريس")),
+        "PDF should not contain reversed Arabic. Got: " + pageText);
+  }
+
+  private static String reverseArabicWord(String word) {
+    return new StringBuilder(word).reverse().toString();
   }
 }

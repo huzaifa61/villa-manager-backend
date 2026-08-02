@@ -53,11 +53,22 @@ public class PdfExportUtil {
 
     private static PdfPCell textCell(String text, boolean bold) {
         float size = bold ? 11f : 10f;
+
+        if (PdfFontProvider.isMostlyArabic(text)) {
+            PdfPCell cell = new PdfPCell();
+            cell.setPadding(bold ? 8 : 5);
+            cell.setBackgroundColor(bold ? BaseColor.LIGHT_GRAY : BaseColor.WHITE);
+            cell.setHorizontalAlignment(Element.ALIGN_CENTER);
+            cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
+            cell.setRunDirection(PdfWriter.RUN_DIRECTION_LTR);
+            Paragraph paragraph = new Paragraph(PdfFontProvider.arabicPhrase(text, size, bold));
+            paragraph.setAlignment(Element.ALIGN_CENTER);
+            cell.addElement(paragraph);
+            return cell;
+        }
+
         Phrase phrase;
-        boolean mostlyArabic = PdfFontProvider.isMostlyArabic(text);
-        if (mostlyArabic) {
-            phrase = PdfFontProvider.arabicCellPhrase(text, size, bold);
-        } else if (PdfFontProvider.containsArabic(text)) {
+        if (PdfFontProvider.containsArabic(text)) {
             phrase = PdfFontProvider.phrase(text, size, bold);
         } else {
             phrase = bold ? PdfFontProvider.boldPhrase(text) : PdfFontProvider.regularPhrase(text);
@@ -68,9 +79,6 @@ public class PdfExportUtil {
         cell.setBackgroundColor(bold ? BaseColor.LIGHT_GRAY : BaseColor.WHITE);
         cell.setHorizontalAlignment(Element.ALIGN_CENTER);
         cell.setVerticalAlignment(Element.ALIGN_MIDDLE);
-        if (mostlyArabic) {
-            cell.setRunDirection(PdfWriter.RUN_DIRECTION_RTL);
-        }
         return cell;
     }
 
@@ -100,7 +108,7 @@ public class PdfExportUtil {
             String trimmedName = villaName.trim();
             Paragraph villaLine;
             if (PdfFontProvider.isMostlyArabic(trimmedName)) {
-                villaLine = new Paragraph(PdfFontProvider.mixedPhrase("Villa: ", trimmedName, 14, true));
+                villaLine = new Paragraph(PdfFontProvider.arabicPhrase(trimmedName, 14, true));
             } else {
                 villaLine = new Paragraph(PdfFontProvider.boldPhrase("Villa: " + trimmedName));
             }
