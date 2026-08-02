@@ -68,6 +68,7 @@
 /Users/mohammed.shaikh/Documents/villa 6 pro/villa-manager-backend/src/main/java/com/villamanager/dto/AcceptInviteRequest.java
 /Users/mohammed.shaikh/Documents/villa 6 pro/villa-manager-backend/src/main/java/com/villamanager/controller/UserController.java
 /Users/mohammed.shaikh/Documents/villa 6 pro/villa-manager-backend/src/main/java/com/villamanager/service/EmailService.java
+/Users/mohammed.shaikh/Documents/villa 6 pro/villa-manager-backend/src/main/java/com/villamanager/config/PdfFontWarmup.java
 /Users/mohammed.shaikh/Documents/villa 6 pro/villa-manager-backend/src/main/java/com/villamanager/dto/AuthResponse.java
 /Users/mohammed.shaikh/Documents/villa 6 pro/villa-manager-backend/src/main/java/com/villamanager/dto/ApartmentDto.java
 /Users/mohammed.shaikh/Documents/villa 6 pro/villa-manager-backend/src/main/java/com/villamanager/repository/ExpenseCategoryRepository.java

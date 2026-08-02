@@ -31,6 +31,14 @@ public final class PdfFontProvider {
 
     private PdfFontProvider() {}
 
+    /** Load embedded fonts at startup so PDF export fails fast if fonts are missing from the JAR. */
+    public static void warmUp() {
+        latinRegularBase();
+        latinBoldBase();
+        arabicRegularBase();
+        arabicBoldBase();
+    }
+
     public static Phrase titlePhrase(String text) {
         return latinPhrase(text, 18, true);
     }

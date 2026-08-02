@@ -70,6 +70,7 @@ com/villamanager/controller/ApartmentController.class
 com/villamanager/entity/ExpenseCategory.class
 com/villamanager/entity/Villa.class
 com/villamanager/exception/ResourceNotFoundException.class
+com/villamanager/config/PdfFontWarmup.class
 com/villamanager/controller/VendorController.class
 com/villamanager/entity/PaymentStatus.class
 com/villamanager/controller/ServiceRequestController.class
