@@ -54,7 +54,8 @@ public class PdfExportUtil {
     private static PdfPCell textCell(String text, boolean bold) {
         float size = bold ? 11f : 10f;
         Phrase phrase;
-        if (PdfFontProvider.isMostlyArabic(text)) {
+        boolean mostlyArabic = PdfFontProvider.isMostlyArabic(text);
+        if (mostlyArabic) {
             phrase = PdfFontProvider.arabicPhrase(text, size, bold);
         } else if (PdfFontProvider.containsArabic(text)) {
             phrase = PdfFontProvider.phrase(text, size, bold);
@@ -94,8 +95,7 @@ public class PdfExportUtil {
         String villaName = branding.getCompanyName();
         if (BrandingExportHelper.hasText(villaName)) {
             String trimmedName = villaName.trim();
-            Paragraph villaLine = new Paragraph(
-                    PdfFontProvider.mixedPhrase("Villa: ", trimmedName, 12, true));
+            Paragraph villaLine = new Paragraph(PdfFontProvider.mixedPhrase("Villa: ", trimmedName, 12, true));
             villaLine.setAlignment(Element.ALIGN_CENTER);
             villaLine.setSpacingBefore(6);
             document.add(villaLine);
