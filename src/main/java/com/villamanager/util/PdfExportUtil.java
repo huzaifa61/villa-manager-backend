@@ -68,7 +68,9 @@ public class PdfExportUtil {
         if (LogoExportHelper.hasLogo(branding.getLogoData())) {
             try {
                 Image logo = Image.getInstance(branding.getLogoData());
-                logo.scaleToFit(110, 70);
+                LogoExportHelper.ImageDimensions logoSize = LogoExportHelper.fitWithin(
+                        branding.getLogoData(), 110, 110);
+                logo.scaleToFit(logoSize.width(), logoSize.height());
                 logo.setAlignment(Element.ALIGN_CENTER);
                 document.add(logo);
                 document.add(Chunk.NEWLINE);

@@ -77,6 +77,7 @@ com/villamanager/config/DataInitializer.class
 com/villamanager/controller/VillaControlController.class
 com/villamanager/service/NotificationService.class
 com/villamanager/security/JwtAuthenticationFilter.class
+com/villamanager/util/LogoExportHelper$ImageDimensions.class
 com/villamanager/service/RecurringExpenseService.class
 com/villamanager/service/AccessControlService.class
 com/villamanager/exception/AuthenticationFailedException.class

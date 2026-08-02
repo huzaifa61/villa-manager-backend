@@ -3,6 +3,7 @@ package com.villamanager.util;
 import com.villamanager.config.BrandingProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.util.Units;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import java.io.ByteArrayOutputStream;
@@ -15,6 +16,10 @@ import java.util.*;
 
 @Slf4j
 public class ExcelExportUtil {
+
+    private static final int LOGO_MAX_WIDTH_PX = 88;
+    private static final int LOGO_MAX_HEIGHT_PX = 88;
+    private static final int LOGO_PADDING_PX = 4;
 
     public static byte[] generateExcel(String sheetName, List<String> headers, List<List<Object>> rows) throws IOException {
         return generateExcel(sheetName, headers, rows, null);
@@ -30,16 +35,32 @@ public class ExcelExportUtil {
                 int textColumn = 0;
                 if (LogoExportHelper.hasLogo(branding.getLogoData())) {
                     try {
+                        LogoExportHelper.ImageDimensions logoSize = LogoExportHelper.fitWithin(
+                                branding.getLogoData(), LOGO_MAX_WIDTH_PX, LOGO_MAX_HEIGHT_PX);
                         int pictureType = LogoExportHelper.workbookPictureType(workbook, branding.getLogoContentType());
                         int pictureIdx = workbook.addPicture(branding.getLogoData(), pictureType);
                         Drawing<?> drawing = sheet.createDrawingPatriarch();
                         ClientAnchor anchor = workbook.getCreationHelper().createClientAnchor();
                         anchor.setCol1(0);
                         anchor.setRow1(rowIndex);
-                        anchor.setCol2(2);
-                        anchor.setRow2(rowIndex + 4);
+                        anchor.setDx1(Units.pixelToEMU(LOGO_PADDING_PX));
+                        anchor.setDy1(Units.pixelToEMU(LOGO_PADDING_PX));
+                        anchor.setCol2(0);
+                        anchor.setRow2(rowIndex);
+                        anchor.setDx2(Units.pixelToEMU(logoSize.width() + LOGO_PADDING_PX));
+                        anchor.setDy2(Units.pixelToEMU(logoSize.height() + LOGO_PADDING_PX));
+                        anchor.setAnchorType(ClientAnchor.AnchorType.DONT_MOVE_AND_RESIZE);
                         drawing.createPicture(anchor, pictureIdx);
-                        textColumn = 3;
+
+                        int logoColumnChars = Math.max(10, (int) Math.ceil((logoSize.width() + LOGO_PADDING_PX * 2) / 7.0) + 1);
+                        sheet.setColumnWidth(0, logoColumnChars * 256);
+                        float logoRowHeightPts = Math.max(15f, (logoSize.height() + LOGO_PADDING_PX * 2) * 0.75f);
+                        Row logoRow = sheet.getRow(rowIndex);
+                        if (logoRow == null) {
+                            logoRow = sheet.createRow(rowIndex);
+                        }
+                        logoRow.setHeightInPoints(logoRowHeightPts);
+                        textColumn = 1;
                     } catch (Exception e) {
                         log.warn("Could not embed logo in Excel export", e);
                     }
