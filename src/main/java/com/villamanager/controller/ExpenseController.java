@@ -192,7 +192,7 @@ public class ExpenseController {
     private void applyToApartment(Long apartmentId, java.math.BigDecimal amount, boolean add) {
         apartmentRepository.findById(apartmentId).ifPresent(apt -> {
             java.math.BigDecimal current = apt.getCurrentBalance() != null ? apt.getCurrentBalance() : java.math.BigDecimal.ZERO;
-            apt.setCurrentBalance(add ? current.add(amount) : current.subtract(amount));
+            apt.setCurrentBalance(add ? current.subtract(amount) : current.add(amount));
             apt.setUpdatedAt(LocalDateTime.now());
             apartmentRepository.save(apt);
         });
@@ -274,7 +274,7 @@ public class ExpenseController {
                         ? apartment.getCurrentBalance()
                         : BigDecimal.ZERO;
 
-                apartment.setCurrentBalance(current.add(finalAmount));
+                apartment.setCurrentBalance(current.subtract(finalAmount));
                 apartment.setUpdatedAt(LocalDateTime.now());
 
                 apartmentRepository.save(apartment);
@@ -299,7 +299,7 @@ public class ExpenseController {
                     ? apartment.getCurrentBalance()
                     : BigDecimal.ZERO;
 
-            apartment.setCurrentBalance(current.add(share));
+            apartment.setCurrentBalance(current.subtract(share));
             apartment.setUpdatedAt(LocalDateTime.now());
         }
 

@@ -169,7 +169,7 @@ public class ApartmentService {
                 .filter(p -> p.getStatus() == PaymentStatus.COMPLETED || p.getStatus() == PaymentStatus.PAID)
                 .map(p -> p.getAmount() != null ? p.getAmount() : BigDecimal.ZERO)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
-            apartment.setCurrentBalance(opening.add(globalShare).add(directExpenses).subtract(paid));
+            apartment.setCurrentBalance(opening.add(paid).subtract(globalShare).subtract(directExpenses));
             apartment.setUpdatedAt(LocalDateTime.now());
         }
 

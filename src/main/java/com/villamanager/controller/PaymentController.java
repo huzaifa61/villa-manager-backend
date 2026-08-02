@@ -293,7 +293,7 @@ public class PaymentController {
     private void applyToApartment(Long apartmentId, BigDecimal amount, boolean addPayment) {
         apartmentRepository.findById(apartmentId).ifPresent(apartment -> {
             BigDecimal current = apartment.getCurrentBalance() != null ? apartment.getCurrentBalance() : BigDecimal.ZERO;
-            apartment.setCurrentBalance(addPayment ? current.subtract(amount) : current.add(amount));
+            apartment.setCurrentBalance(addPayment ? current.add(amount) : current.subtract(amount));
             apartment.setUpdatedAt(LocalDateTime.now());
             apartmentRepository.save(apartment);
         });
@@ -315,7 +315,7 @@ public class PaymentController {
         BigDecimal share = amount.divide(BigDecimal.valueOf(apartments.size()), 2, RoundingMode.HALF_UP);
         for (Apartment apartment : apartments) {
             BigDecimal current = apartment.getCurrentBalance() != null ? apartment.getCurrentBalance() : BigDecimal.ZERO;
-            apartment.setCurrentBalance(addPayment ? current.subtract(share) : current.add(share));
+            apartment.setCurrentBalance(addPayment ? current.add(share) : current.subtract(share));
             apartment.setUpdatedAt(LocalDateTime.now());
         }
         apartmentRepository.saveAll(apartments);

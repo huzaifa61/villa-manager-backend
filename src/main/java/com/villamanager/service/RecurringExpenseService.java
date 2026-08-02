@@ -147,7 +147,7 @@ public class RecurringExpenseService {
             BigDecimal finalAmount = amount;
             apartmentRepository.findById(expense.getApartmentId()).ifPresent(apartment -> {
                 BigDecimal current = apartment.getCurrentBalance() != null ? apartment.getCurrentBalance() : BigDecimal.ZERO;
-                apartment.setCurrentBalance(current.add(finalAmount));
+                apartment.setCurrentBalance(current.subtract(finalAmount));
                 apartment.setUpdatedAt(LocalDateTime.now());
                 apartmentRepository.save(apartment);
             });
@@ -162,7 +162,7 @@ public class RecurringExpenseService {
         BigDecimal share = amount.divide(BigDecimal.valueOf(apartments.size()), 2, RoundingMode.HALF_UP);
         for (Apartment apartment : apartments) {
             BigDecimal current = apartment.getCurrentBalance() != null ? apartment.getCurrentBalance() : BigDecimal.ZERO;
-            apartment.setCurrentBalance(current.add(share));
+            apartment.setCurrentBalance(current.subtract(share));
             apartment.setUpdatedAt(LocalDateTime.now());
         }
         apartmentRepository.saveAll(apartments);
