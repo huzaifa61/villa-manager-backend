@@ -88,9 +88,13 @@ public class VillaControlController {
             @RequestPart("file") MultipartFile file) {
         accessControlService.requireVillaManage(villaId);
         getVillaOrThrow(villaId);
-        brandingService.saveVillaLogo(villaId, file.getBytes(), file.getContentType());
-        return ResponseEntity.ok(ApiResponse.success("Villa logo uploaded successfully",
-                Map.of("hasLogo", true, "logoApiPath", "/v1/villas/" + villaId + "/logo")));
+        try {
+            brandingService.saveVillaLogo(villaId, file.getBytes(), file.getContentType());
+            return ResponseEntity.ok(ApiResponse.success("Villa logo uploaded successfully",
+                    Map.of("hasLogo", true, "logoApiPath", "/v1/villas/" + villaId + "/logo")));
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body(ApiResponse.error(e.getMessage(), e.getMessage()));
+        }
     }
 
     @GetMapping("/logo")
