@@ -5,15 +5,16 @@ import com.itextpdf.text.Chunk;
 import com.itextpdf.text.Font;
 import com.itextpdf.text.Phrase;
 import com.itextpdf.text.pdf.BaseFont;
-import com.itextpdf.text.pdf.languages.ArabicLigaturizer;
 import lombok.extern.slf4j.Slf4j;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 
 /**
  * Latin + Arabic fonts for PDF export.
- * Builds phrases per script segment instead of FontSelector (unreliable with embedded TTF bytes).
+ * Uses logical-order Unicode Arabic with Noto Sans Arabic (no iText ligaturizer — it garbles text).
  */
 @Slf4j
 public final class PdfFontProvider {
@@ -31,24 +32,20 @@ public final class PdfFontProvider {
     private PdfFontProvider() {}
 
     public static Phrase titlePhrase(String text) {
-        return phrase(text, 18, true);
+        return latinPhrase(text, 18, true);
     }
 
     public static Phrase boldPhrase(String text) {
-        return phrase(text, 11, true);
+        return latinPhrase(text, 11, true);
     }
 
     public static Phrase regularPhrase(String text) {
-        return phrase(text, 10, false);
+        return latinPhrase(text, 10, false);
     }
 
     public static Phrase smallPhrase(String text) {
-        return phrase(text, 8, false);
+        return latinPhrase(text, 8, false);
     }
-
-    private static final char RTL_EMBED = '\u202B';
-    private static final char POP_DIRECTION = '\u202C';
-    private static final char RIGHT_TO_LEFT_MARK = '\u200F';
 
     public static Phrase arabicPhrase(String text, float size, boolean bold) {
         Phrase phrase = new Phrase();
@@ -56,22 +53,73 @@ public final class PdfFontProvider {
             return phrase;
         }
         Font arabic = styledFont(bold ? arabicBoldBase() : arabicRegularBase(), size);
-        phrase.add(new Chunk(shapeArabic(text.trim()), arabic));
+        phrase.add(new Chunk(text.trim(), arabic));
         return phrase;
     }
 
-    /** Label on the left, Arabic villa name on the right in one centered row. */
-    public static Phrase villaNameLinePhrase(String villaName, float size, boolean bold) {
+    public static Phrase latinPhrase(String text, float size, boolean bold) {
         Phrase phrase = new Phrase();
+        if (text == null) {
+            return phrase;
+        }
         Font latin = styledFont(bold ? latinBoldBase() : latinRegularBase(), size);
-        Font arabic = styledFont(bold ? arabicBoldBase() : arabicRegularBase(), size);
-        phrase.add(new Chunk("Villa: ", latin));
-        if (villaName != null && !villaName.isBlank()) {
-            String shaped = shapeArabic(villaName.trim());
-            phrase.add(new Chunk(String.valueOf(RIGHT_TO_LEFT_MARK), latin));
-            phrase.add(new Chunk(String.valueOf(RTL_EMBED) + shaped + POP_DIRECTION, arabic));
+        phrase.add(new Chunk(text, latin));
+        return phrase;
+    }
+
+    /** Mixed Latin label + Arabic value in logical order, each in its own font. */
+    public static Phrase mixedPhrase(String latinPart, String arabicPart, float size, boolean bold) {
+        Phrase phrase = new Phrase();
+        if (latinPart != null && !latinPart.isEmpty()) {
+            phrase.add(new Chunk(latinPart, styledFont(bold ? latinBoldBase() : latinRegularBase(), size)));
+        }
+        if (arabicPart != null && !arabicPart.isBlank()) {
+            phrase.add(new Chunk(arabicPart.trim(), styledFont(bold ? arabicBoldBase() : arabicRegularBase(), size)));
         }
         return phrase;
+    }
+
+    public static Phrase phrase(String text, float size, boolean bold) {
+        if (text == null) {
+            text = "";
+        }
+        if (!containsArabic(text)) {
+            return latinPhrase(text, size, bold);
+        }
+        if (isMostlyArabic(text)) {
+            return arabicPhrase(text, size, bold);
+        }
+
+        Phrase phrase = new Phrase();
+        BaseFont latinBase = bold ? latinBoldBase() : latinRegularBase();
+        BaseFont arabicBase = bold ? arabicBoldBase() : arabicRegularBase();
+
+        int index = 0;
+        while (index < text.length()) {
+            char current = text.charAt(index);
+            boolean arabic = isArabicChar(current);
+            int end = index + 1;
+            while (end < text.length() && isArabicChar(text.charAt(end)) == arabic) {
+                end++;
+            }
+            String segment = text.substring(index, end);
+            Font font = styledFont(arabic ? arabicBase : latinBase, size);
+            phrase.add(new Chunk(segment, font));
+            index = end;
+        }
+        return phrase;
+    }
+
+    public static boolean containsArabic(String text) {
+        if (text == null || text.isEmpty()) {
+            return false;
+        }
+        for (int i = 0; i < text.length(); i++) {
+            if (isArabicChar(text.charAt(i))) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public static boolean isMostlyArabic(String text) {
@@ -91,45 +139,6 @@ public final class PdfFontProvider {
         return arabicCount > 0 && arabicCount >= latinCount;
     }
 
-    public static boolean containsArabic(String text) {
-        if (text == null || text.isEmpty()) {
-            return false;
-        }
-        for (int i = 0; i < text.length(); i++) {
-            if (isArabicChar(text.charAt(i))) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    public static Phrase phrase(String text, float size, boolean bold) {
-        if (text == null) {
-            text = "";
-        }
-        Phrase phrase = new Phrase();
-        BaseFont latinBase = bold ? latinBoldBase() : latinRegularBase();
-        BaseFont arabicBase = bold ? arabicBoldBase() : arabicRegularBase();
-
-        int index = 0;
-        while (index < text.length()) {
-            char current = text.charAt(index);
-            boolean arabic = isArabicChar(current);
-            int end = index + 1;
-            while (end < text.length() && isArabicChar(text.charAt(end)) == arabic) {
-                end++;
-            }
-            String segment = text.substring(index, end);
-            if (arabic) {
-                segment = shapeArabic(segment);
-            }
-            Font font = styledFont(arabic ? arabicBase : latinBase, size);
-            phrase.add(new Chunk(segment, font));
-            index = end;
-        }
-        return phrase;
-    }
-
     private static Font styledFont(BaseFont base, float size) {
         Font font = new Font(base, size);
         font.setColor(BaseColor.BLACK);
@@ -142,16 +151,6 @@ public final class PdfFontProvider {
                 || block == Character.UnicodeBlock.ARABIC_PRESENTATION_FORMS_A
                 || block == Character.UnicodeBlock.ARABIC_PRESENTATION_FORMS_B
                 || block == Character.UnicodeBlock.ARABIC_SUPPLEMENT;
-    }
-
-    private static String shapeArabic(String text) {
-        try {
-            ArabicLigaturizer ligaturizer = new ArabicLigaturizer();
-            return ligaturizer.process(text);
-        } catch (Exception e) {
-            log.warn("Arabic shaping failed, using raw text", e);
-            return text;
-        }
     }
 
     private static BaseFont latinRegularBase() {
@@ -186,23 +185,23 @@ public final class PdfFontProvider {
         try (InputStream input = PdfFontProvider.class.getClassLoader().getResourceAsStream(classpathPath)) {
             if (input == null) {
                 log.warn("PDF font not found at {}, falling back to Helvetica", classpathPath);
-                return BaseFont.createFont(BaseFont.HELVETICA, BaseFont.WINANSI, BaseFont.NOT_EMBEDDED);
+                return helveticaFallback();
             }
-            byte[] bytes = input.readAllBytes();
-            return BaseFont.createFont(
-                    classpathPath,
-                    BaseFont.IDENTITY_H,
-                    BaseFont.EMBEDDED,
-                    true,
-                    bytes,
-                    null);
+            File tempFile = Files.createTempFile("villa-pdf-font-", ".ttf").toFile();
+            Files.write(tempFile.toPath(), input.readAllBytes());
+            tempFile.deleteOnExit();
+            return BaseFont.createFont(tempFile.getAbsolutePath(), BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
         } catch (IOException | com.itextpdf.text.DocumentException e) {
             log.error("Failed to load PDF font {}", classpathPath, e);
-            try {
-                return BaseFont.createFont(BaseFont.HELVETICA, BaseFont.WINANSI, BaseFont.NOT_EMBEDDED);
-            } catch (Exception fallbackError) {
-                throw new IllegalStateException("Could not initialize PDF fonts", fallbackError);
-            }
+            return helveticaFallback();
+        }
+    }
+
+    private static BaseFont helveticaFallback() {
+        try {
+            return BaseFont.createFont(BaseFont.HELVETICA, BaseFont.WINANSI, BaseFont.NOT_EMBEDDED);
+        } catch (Exception e) {
+            throw new IllegalStateException("Could not initialize PDF fonts", e);
         }
     }
 }
