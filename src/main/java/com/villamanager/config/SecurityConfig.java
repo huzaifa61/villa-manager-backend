@@ -2,6 +2,7 @@ package com.villamanager.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -38,12 +39,15 @@ public class SecurityConfig {
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(authz -> authz
                 .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                .requestMatchers(HttpMethod.POST, "/v1/auth/login", "/api/v1/auth/login").permitAll()
-                .requestMatchers(HttpMethod.POST, "/v1/auth/register", "/api/v1/auth/register").permitAll()
-                .requestMatchers(HttpMethod.POST, "/v1/auth/accept-invite", "/api/v1/auth/accept-invite").permitAll()
+                // Match paths inside the /api servlet context configured in application.yml.
+                .requestMatchers(HttpMethod.POST, "/v1/auth/**").permitAll()
                 .requestMatchers("/error", "/error/**").permitAll()
                 .requestMatchers("/swagger-ui.html", "/swagger-ui/**", "/v3/api-docs/**").permitAll()
                 .anyRequest().authenticated()
+            )
+            .exceptionHandling(exceptions -> exceptions
+                .authenticationEntryPoint((request, response, exception) ->
+                    response.sendError(HttpStatus.UNAUTHORIZED.value(), "Unauthorized"))
             )
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
