@@ -30,7 +30,13 @@ public class AuthenticationService {
     private JwtTokenProvider jwtTokenProvider;
 
     public AuthResponse login(LoginRequest request) {
-        User user = userRepository.findByEmail(request.getEmail())
+        if (request == null || request.getEmail() == null || request.getEmail().trim().isEmpty()
+                || request.getPassword() == null || request.getPassword().isEmpty()) {
+            throw new AuthenticationFailedException("Invalid email or password");
+        }
+
+        String email = request.getEmail().trim().toLowerCase();
+        User user = userRepository.findByEmailIgnoreCase(email)
                 .orElseThrow(() -> new AuthenticationFailedException("Invalid email or password"));
 
         if (!passwordEncoder.matches(request.getPassword(), user.getPassword())) {
@@ -87,7 +93,7 @@ public class AuthenticationService {
         }
 
         String email = request.getEmail().trim().toLowerCase();
-        if (userRepository.existsByEmail(email)) {
+        if (userRepository.existsByEmailIgnoreCase(email)) {
             throw new InvalidOperationException("An account already exists with this email");
         }
 
