@@ -1,0 +1,42 @@
+services:
+  # Spring Boot Backend Web Service
+  - type: web
+    name: villa-manager-backend
+    env: docker
+    dockerfilePath: ./Dockerfile
+    plan: free
+    region: oregon
+    healthCheckPath: /api/villas
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: prod
+      - key: DB_HOST
+        fromDatabase:
+          name: villa-manager-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: villa-manager-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: villa-manager-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: villa-manager-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: villa-manager-db
+          property: password
+      - key: FRONTEND_URL
+        value: https://villa-manager-frontend.vercel.app
+
+  # Managed PostgreSQL Database
+  - type: postgres
+    name: villa-manager-db
+    plan: free
+    region: oregon
+    databaseName: villa_manager
+    user: postgres
