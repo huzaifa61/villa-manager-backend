@@ -39,4 +39,4 @@ databases:
     plan: free
     region: oregon
     databaseName: villa_manager
-    user: postgres
+    user: villa_user
