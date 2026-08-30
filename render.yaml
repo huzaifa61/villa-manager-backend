@@ -6,7 +6,7 @@ services:
     dockerfilePath: ./Dockerfile
     plan: free
     region: oregon
-    healthCheckPath: /api/villas
+    healthCheckPath: /api/v1/health
     envVars:
       - key: SPRING_PROFILES_ACTIVE
         value: prod
